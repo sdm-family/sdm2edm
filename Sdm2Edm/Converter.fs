@@ -3,13 +3,13 @@
 open Sdm
 open Edm
 
-let convertComponent (r: Realizer) (c: Component) : Cell list =
+let convertComponent (rule: ConvertionRule) (c: Component) : Cell list =
   []
 
-let convertPage (r: Realizer) (page: Page) : Sheet =
+let convertPage (rule: ConvertionRule) (page: Page) : Sheet =
   let sheetName = page.Name
   { Sheet.Name = sheetName
-    Cells = page.Components |> List.collect (convertComponent r) }
+    Cells = page.Components |> List.collect (convertComponent rule) }
 
-let convert (r: Realizer) (pages: Page list) : Sheet list =
-  pages |> List.map (convertPage r)
+let convert (rule: ConvertionRule) (pages: Page list) : Sheet list =
+  pages |> List.map (convertPage rule)

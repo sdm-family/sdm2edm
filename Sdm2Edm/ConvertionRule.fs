@@ -3,7 +3,7 @@
 open System.Collections.Generic
 
 [<AbstractClass>]
-type Realizer () =
+type ConvertionRule () =
   let usedNamesCountTable = Dictionary<string, int>()
 
   abstract SheetName: string -> string
