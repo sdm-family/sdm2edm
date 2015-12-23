@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sdm2Edm", "Sdm2Edm\Sdm2Edm.fsproj", "{5BFA084E-F029-4100-BD8C-B2E2B5B7B6A1}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sdm2Edm.Tests", "Sdm2Edm.Tests\Sdm2Edm.Tests.fsproj", "{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5BFA084E-F029-4100-BD8C-B2E2B5B7B6A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BFA084E-F029-4100-BD8C-B2E2B5B7B6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BFA084E-F029-4100-BD8C-B2E2B5B7B6A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
