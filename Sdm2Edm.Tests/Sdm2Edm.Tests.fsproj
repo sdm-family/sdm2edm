@@ -52,6 +52,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Content Include="packages.config" />
+    <Compile Include="TestUtils.fs" />
+    <Compile Include="CellExtensionTest.fs" />
     <Compile Include="ConverterTest.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -52,7 +52,9 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Content Include="packages.config" />
+    <Compile Include="Basis.fs" />
     <Compile Include="ConvertionRule.fs" />
+    <Compile Include="CellExtension.fs" />
     <Compile Include="Converter.fs" />
   </ItemGroup>
   <ItemGroup>
