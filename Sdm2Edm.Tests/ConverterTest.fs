@@ -24,31 +24,30 @@ let cell { Address.Row = row; Column = col } txt = {
   Data = Other txt
 }
 
+let data (cell: Cell) =
+  match cell.Data with
+  | Other o -> o
+  | _ -> failwithf "unsupported data constructor: %A" cell.Data
+
 let segmentsToString (segments: TextSegment list) =
   segments |> List.map (fun seg -> seg.Value) |> String.concat ""
 
 // このConvertionRuleの実装はテスト用なので参考にしないこと
 // 本来はgroupsの値を見て変換方法を決定するようなコードを書く
 let rule = { new ConvertionRule() with
-               override __.Heading(address, groups, level, text) =
-                 (address |> Address.updateRow 1, [ cell address (String.replicate level "#" + " " + (text.Segments |> segmentsToString)) ])
-               override __.Paragraph(address, groups, lines) =
-                 let nextAddress = address |> Address.updateRow (lines.Length + 1)
-                 let cells =
-                   lines
-                   |> List.mapi (fun i line -> cell (address |> Address.updateRow i) (line.Segments |> segmentsToString))
-                 (nextAddress, cells)
-               override __.List(startAddress, endAddress, groups, cells) =
-                 ({ Row = endAddress.Row + 1; Column = startAddress.Column }, cells)
-               override __.ListItem(address, groups, itemCells) =
-                 let res =
-                   itemCells
-                   |> List.mapi (fun i itemCell -> (itemCell, i))
-                   |> List.collect (fun (itemCell, i) ->
-                       [ if i = 0 then
-                           yield cell { Address.Row = itemCell.Row; Address.Column = itemCell.Column; } "*"
-                         yield { itemCell with Column = itemCell.Column + 1; MergedColumns = itemCell.MergedColumns - 1 } ])
-                 (address |> Address.updateRow -1, res) }
+               override __.Text(start, groups, text) = [ cell start.Start (text.Segments |> segmentsToString) ]
+               override __.ArroundHeading(start, groups, level, cells) =
+                 let prefix = (String.replicate level "#") + " "
+                 match cells with
+                 | [] -> [ cell start.Start prefix ]
+                 | x::xs -> (cell { Address.Row = x.Row; Column = x.Column } (prefix + (string (data x))))::xs
+               override __.ArroundParagraph(start, groups, cells) = cells
+               override __.ArroundListItem(start, groups, cells) =
+                 let cells, _ = Converter.moveRight 1 cells
+                 (cell start.Start "*")::(cells |> List.map (fun cell -> { cell with MergedColumns = cell.MergedColumns - 1 }))
+               override __.ArroundList(start, groups, cells) =
+                 cells 
+           }
 
 let text str =
   Text.fromTextSegment (TextSegment.fromString str)
@@ -76,13 +75,13 @@ let ``convertPageでAddressが計算できる`` = test {
         cell { Address.Row = 1; Column = 0 } "## heading2"
         cell { Address.Row = 2; Column = 0 } "first line"
         cell { Address.Row = 3; Column = 0 } "second line"
-        cell { Address.Row = 5; Column = 0 } "other paragraph"  // 上のParagraphとは別Paragraphなので、ConvertionRuleの実装によって空行が作られる
-        cell { Address.Row = 7; Column = 0 } "*"                // ListとParagraphの間にも空行が作られる
-        cell { Address.Row = 7; Column = 1 } "list item 1"      // リストのアイテムはカラムが一つずれ、元のカラムにはリストアイテムを表す「*」が入る
-        cell { Address.Row = 8; Column = 0 } "*"
-        cell { Address.Row = 8; Column = 1 } "list"
-        cell { Address.Row = 9; Column = 1 } "item"             // リストのアイテムが複数行になっている場合、二行目以降は「*」は入らず、カラムがずれるだけ
-        cell { Address.Row = 10; Column = 1 } "1"
+        cell { Address.Row = 4; Column = 0 } "other paragraph"
+        cell { Address.Row = 5; Column = 0 } "*"
+        cell { Address.Row = 5; Column = 1 } "list item 1"
+        cell { Address.Row = 6; Column = 0 } "*"
+        cell { Address.Row = 6; Column = 1 } "list"
+        cell { Address.Row = 7; Column = 1 } "item"
+        cell { Address.Row = 8; Column = 1 } "1"
       ]
   }
   do! assertEquals expected res
