@@ -67,7 +67,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Sdm">
-      <HintPath>..\..\sdm2edm\packages\Sdm.1.0.0.0\lib\net46\Sdm.dll</HintPath>
+      <HintPath>..\packages\Sdm.2.0.0.0\lib\net46\Sdm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

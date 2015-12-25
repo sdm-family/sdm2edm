@@ -57,3 +57,15 @@ type ConvertionRule () =
 
   /// リスト全体の変換規則です。
   abstract ArroundList: start:ComponentRange * groups:ListStyleGroup list * cells:Cell list -> ConvertedResult
+
+  /// セル全体の変換規則です。
+  abstract ArroundTableCell: start:ComponentRange * groups:CellStyleGroup list * cells:Cell list -> ConvertedResult
+
+  /// 行ベースのテーブル1列全体の変換規則です。
+  abstract ArroundTableColumn: start:ComponentRange * headerRange:ComponentRange * groups:ColumnStyleGroup list * cells:Cell list -> ConvertedResult
+
+  /// 列ベースのテーブル1行全体の変換規則です。
+  abstract ArroundTableRow: start:ComponentRange * headerRange:ComponentRange * groups:RowStyleGroup list * cells:Cell list -> ConvertedResult
+
+  /// テーブル全体の変換規則です。
+  abstract ArroundTable: start:ComponentRange * groups:TableStyleGroup list * cells:Cell list -> ConvertedResult

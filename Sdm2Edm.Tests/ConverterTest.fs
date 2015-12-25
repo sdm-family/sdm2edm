@@ -28,8 +28,11 @@ let rule = { new ConvertionRule() with
                override __.ArroundListItem(start, groups, cells) =
                  let cells, _ = Cells.moveRight 1 cells
                  (textCell start.Start "*")::(cells |> List.map (fun cell -> { cell with MergedColumns = cell.MergedColumns - 1 }))
-               override __.ArroundList(start, groups, cells) =
-                 cells 
+               override __.ArroundList(start, groups, cells) = cells 
+               override __.ArroundTableCell(start, groups, cells) = cells
+               override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
+               override __.ArroundTableRow(start, headerRange, groups, cells) = cells
+               override __.ArroundTable(start, groups, cells) = cells
            }
 
 let ``convertPageでAddressが計算できる`` = test {
@@ -66,3 +69,21 @@ let ``convertPageでAddressが計算できる`` = test {
   }
   do! assertEquals expected res
 }
+
+let ``adjustColumnsで列幅を統一できる`` =
+  let test (cells, expected) = test {
+    do! assertEquals expected (Converter.adjustColumns cells)
+  }
+  parameterize {
+    case ([emptyCell (0, 0, 1, 1)], [emptyCell (0, 0, 1, 1)])
+    case ([emptyCell (0, 0, 1, 1); emptyCell (1, 0, 10, 2)], [emptyCell (0, 0, 1, 2); emptyCell (1, 0, 10, 2)])
+    case ([emptyCell (0, 0, 1, 3)
+           emptyCell (1, 0, 1, 1); emptyCell (1, 1, 1, 1)
+           emptyCell (2, 0, 1, 2); emptyCell (2, 2, 1, 3)
+           emptyCell (3, 0, 1, 1)],
+          [emptyCell (0, 0, 1, 5)
+           emptyCell (1, 0, 1, 1); emptyCell (1, 1, 1, 4)
+           emptyCell (2, 0, 1, 2); emptyCell (2, 2, 1, 3)
+           emptyCell (3, 0, 1, 5)])
+    run test
+  }
