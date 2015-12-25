@@ -8,38 +8,6 @@ let cellToRange (cell: Cell) =
   let endAttr = { Address.Row = cell.Row + cell.MergedRows - 1; Column = cell.Column + cell.MergedColumns - 1 }
   (startAddr, endAttr)
 
-let moveDown rows (cells: Cell list) =
-  let startAddr, endAddr = cellToRange cells.Head
-  let res, startAddr, endAddr =
-    cells
-    |> List.fold (fun (acc, (startAddr: Address), (endAddr: Address)) cell ->
-          let startAddr =
-            { Address.Row = min startAddr.Row cell.Row
-              Column = min startAddr.Column cell.Column }
-          let endAddr =
-            { Address.Row = max endAddr.Row cell.Row
-              Column = max endAddr.Column cell.Column }
-          ({ cell with Row = cell.Row + rows }::acc, startAddr, endAddr)
-        ) ([], startAddr, endAddr)
-  List.rev res, { Start = startAddr; End = endAddr }
-
-let moveRight cols (cells: Cell list) =
-  let startAddr, endAddr = cellToRange cells.Head
-  let res, startAddr, endAddr =
-    cells
-    |> List.fold (fun (acc, (startAddr: Address), (endAddr: Address)) cell ->
-          let startAddr =
-            { Address.Row = min startAddr.Row cell.Row
-              Column = min startAddr.Column cell.Column }
-          let endAddr =
-            { Address.Row = max endAddr.Row cell.Row
-              Column = max endAddr.Column cell.Column }
-          ({ cell with Column = cell.Column + cols }::acc, startAddr, endAddr)
-        ) ([], startAddr, endAddr)
-  List.rev res, { Start = startAddr; End = endAddr }
-
-let mapFst f (x, y) = (f x, y)
-
 let calcRange (cells: Cell list) =
   let initRange = cellToRange cells.Head
   cells
@@ -48,11 +16,20 @@ let calcRange (cells: Cell list) =
          { Address.Row = min startAddr.Row cell.Row
            Column = min startAddr.Column cell.Column }
        let endAddr =
-         { Address.Row = max endAddr.Row cell.Row
-           Column = max endAddr.Column cell.Column }
+         { Address.Row = max endAddr.Row (cell.Row + cell.MergedRows - 1)
+           Column = max endAddr.Column (cell.Column + cell.MergedColumns - 1) }
        (startAddr, endAddr)
      ) initRange
   |> fun (s, e) -> { Start = s; End = e }
+
+let dup x = (x, x)
+let mapSnd f (x, y) = (x, f y)
+
+let moveDown rows (cells: Cell list) =
+  cells |> List.map (fun cell -> { cell with Row = cell.Row + rows }) |> dup |> mapSnd calcRange
+
+let moveRight cols (cells: Cell list) =
+  cells |> List.map (fun cell -> { cell with Column = cell.Column + cols }) |> dup |> mapSnd calcRange
 
 let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = function
 | Heading (groups, level, text) ->

@@ -12,15 +12,18 @@ let noBorder = {
   Color = NoColor
 }
 
-let cell { Address.Row = row; Column = col } txt = {
+let format =
+  { RepresentationFormat = OneReprFormat { Color = None; Condition = None; Format = NumericFormat [ NFCLiteral "General" ] }
+    Layout = { HorizontalLayout = HLStandard; VerticalLayout = VLCenter NoTextControl }
+    Borders = { Top = noBorder; Right = noBorder; Bottom = noBorder; Left = noBorder; Diagonal = { Border = noBorder; TopLeftToBottomRight = false; BottomLeftToTopRight = false } }
+    BackgroundColor = NoColor }
+
+let textCell { Address.Row = row; Column = col } txt = {
   Cell.Row = row
   Column = col
   MergedRows = 1
   MergedColumns = 26 - col
-  Format = { RepresentationFormat = OneReprFormat { Color = None; Condition = None; Format = NumericFormat [ NFCLiteral "General" ] }
-             Layout = { HorizontalLayout = HLStandard; VerticalLayout = VLCenter NoTextControl }
-             Borders = { Top = noBorder; Right = noBorder; Bottom = noBorder; Left = noBorder; Diagonal = { Border = noBorder; TopLeftToBottomRight = false; BottomLeftToTopRight = false } }
-             BackgroundColor = NoColor }
+  Format = format
   Data = Other txt
 }
 
@@ -35,16 +38,16 @@ let segmentsToString (segments: TextSegment list) =
 // このConvertionRuleの実装はテスト用なので参考にしないこと
 // 本来はgroupsの値を見て変換方法を決定するようなコードを書く
 let rule = { new ConvertionRule() with
-               override __.Text(start, groups, text) = [ cell start.Start (text.Segments |> segmentsToString) ]
+               override __.Text(start, groups, text) = [ textCell start.Start (text.Segments |> segmentsToString) ]
                override __.ArroundHeading(start, groups, level, cells) =
                  let prefix = (String.replicate level "#") + " "
                  match cells with
-                 | [] -> [ cell start.Start prefix ]
-                 | x::xs -> (cell { Address.Row = x.Row; Column = x.Column } (prefix + (string (data x))))::xs
+                 | [] -> [ textCell start.Start prefix ]
+                 | x::xs -> (textCell { Address.Row = x.Row; Column = x.Column } (prefix + (string (data x))))::xs
                override __.ArroundParagraph(start, groups, cells) = cells
                override __.ArroundListItem(start, groups, cells) =
                  let cells, _ = Converter.moveRight 1 cells
-                 (cell start.Start "*")::(cells |> List.map (fun cell -> { cell with MergedColumns = cell.MergedColumns - 1 }))
+                 (textCell start.Start "*")::(cells |> List.map (fun cell -> { cell with MergedColumns = cell.MergedColumns - 1 }))
                override __.ArroundList(start, groups, cells) =
                  cells 
            }
@@ -71,18 +74,63 @@ let ``convertPageでAddressが計算できる`` = test {
     Sheet.Name = "for test"
     Cells =
       [
-        cell { Address.Row = 0; Column = 0 } "# heading1"
-        cell { Address.Row = 1; Column = 0 } "## heading2"
-        cell { Address.Row = 2; Column = 0 } "first line"
-        cell { Address.Row = 3; Column = 0 } "second line"
-        cell { Address.Row = 4; Column = 0 } "other paragraph"
-        cell { Address.Row = 5; Column = 0 } "*"
-        cell { Address.Row = 5; Column = 1 } "list item 1"
-        cell { Address.Row = 6; Column = 0 } "*"
-        cell { Address.Row = 6; Column = 1 } "list"
-        cell { Address.Row = 7; Column = 1 } "item"
-        cell { Address.Row = 8; Column = 1 } "1"
+        textCell { Address.Row = 0; Column = 0 } "# heading1"
+        textCell { Address.Row = 1; Column = 0 } "## heading2"
+        textCell { Address.Row = 2; Column = 0 } "first line"
+        textCell { Address.Row = 3; Column = 0 } "second line"
+        textCell { Address.Row = 4; Column = 0 } "other paragraph"
+        textCell { Address.Row = 5; Column = 0 } "*"
+        textCell { Address.Row = 5; Column = 1 } "list item 1"
+        textCell { Address.Row = 6; Column = 0 } "*"
+        textCell { Address.Row = 6; Column = 1 } "list"
+        textCell { Address.Row = 7; Column = 1 } "item"
+        textCell { Address.Row = 8; Column = 1 } "1"
       ]
   }
   do! assertEquals expected res
 }
+
+let emptyCell (row, col, height, width) =
+  { Row = row; Column = col; MergedRows = height; MergedColumns = width; Format = format; Data = Other "" }
+
+let addr (row, col) = { Address.Row = row; Column = col }
+
+let range (x, y) = (addr x, addr y)
+
+let ``cellToRangeでセルの占める範囲を計算できる``  =
+  let test (cell, expected) = test {
+    do! assertEquals expected (Converter.cellToRange cell)
+  }
+  parameterize {
+    case (emptyCell (0, 0, 1, 1), range ((0, 0), (0, 0)))
+    case (emptyCell (0, 0, 2, 4), range ((0, 0), (1, 3)))
+    case (emptyCell (1, 2, 1, 1), range ((1, 2), (1, 2)))
+    case (emptyCell (1, 2, 2, 10), range ((1, 2), (2, 11)))
+    run test
+  }
+
+let ``calcRangeでセル群の占める範囲を計算できる`` =
+  let test (cells, expected) = test {
+    do! assertEquals expected (Converter.calcRange cells)
+  }
+  parameterize {
+    case ([emptyCell (0, 0, 1, 1)], { Start = addr (0, 0); End = addr (0, 0) })
+    case ([emptyCell (0, 0, 2, 5)], { Start = addr (0, 0); End = addr (1, 4) })
+    case ([emptyCell (10, 2, 1, 1)], { Start = addr (10, 2); End = addr (10, 2) })
+    case ([emptyCell (10, 2, 2, 5)], { Start = addr (10, 2); End = addr (11, 6) })
+    case ([emptyCell (0, 0, 1, 1); emptyCell (10, 2, 1, 1)], { Start = addr (0, 0); End = addr (10, 2) })
+    case ([emptyCell (0, 0, 1, 1); emptyCell (10, 2, 2, 5)], { Start = addr (0, 0); End = addr (11, 6) })
+    run test
+  }
+
+let ``moveDownでセル群をまとめて下に移動できる`` =
+  let test (cells, n, expected) = test {
+    do! assertEquals expected (Converter.moveDown n cells)
+  }
+  parameterize {
+    case ([emptyCell (0, 0, 1, 1)], 1, ([emptyCell (1, 0, 1, 1)], { Start = addr (1, 0); End = addr (1, 0) }))
+    case ([emptyCell (0, 0, 1, 1)], 2, ([emptyCell (2, 0, 1, 1)], { Start = addr (2, 0); End = addr (2, 0) }))
+    case ([emptyCell (0, 0, 1, 1)
+           emptyCell (1, 0, 2, 2)], 1, ([emptyCell (1, 0, 1, 1); emptyCell (2, 0, 2, 2)], { Start = addr (1, 0); End = addr (3, 1) }))
+    run test
+  }
