@@ -70,6 +70,29 @@ let ``convertPageでAddressが計算できる`` = test {
   do! assertEquals expected res
 }
 
+let ``checkTableでテーブルの行数もしくは列数が統一されていることがチェックできる`` =
+  let test (table, thrownException) = test {
+    if thrownException then
+      let! e = trap { it (Converter.checkTable table) }
+      do! assertEquals typeof<System.ArgumentException> (e.GetType())
+    else
+      Converter.checkTable table
+      do! pass ()
+  }
+  parameterize {
+    case (RowsTable ([], []), false)
+    case (RowsTable ([], [{ Heading = None; Rows = [([], Paragraph([], []))] }
+                          { Heading = None; Rows = [([], Paragraph([], []))] }]), false)
+    case (RowsTable ([], [{ Heading = None; Rows = [] }
+                          { Heading = None; Rows = [([], Paragraph([], []))] }]), true)
+    case (ColumnsTable ([], []), false)
+    case (ColumnsTable ([], [{ Heading = None; Columns = [([], Paragraph([], []))] }
+                             { Heading = None; Columns = [([], Paragraph([], []))] }]), false)
+    case (ColumnsTable ([], [{ Heading = None; Columns = [] }
+                             { Heading = None; Columns = [([], Paragraph([], []))] }]), true)
+    run test
+  }
+
 let ``adjustColumnsで列幅を統一できる`` =
   let test (cells, expected) = test {
     do! assertEquals expected (Converter.adjustColumns cells)

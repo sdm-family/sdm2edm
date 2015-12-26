@@ -3,6 +3,30 @@
 open Sdm
 open Edm
 
+let doNothing = ()
+
+let checkTable = function
+| RowsTable (_, [])
+| ColumnsTable (_, []) -> doNothing
+| RowsTable (_, cols) ->
+    cols
+    |> Seq.map (fun col -> (col.Heading.IsSome, col.Rows.Length))
+    |> Seq.reduce (fun (preIsSome, preRows) (isSome, rows) ->
+         if preIsSome <> isSome || preRows <> rows then
+           raise (System.ArgumentException())
+         else
+           (isSome, rows))
+    |> ignore
+| ColumnsTable (_, rows) ->
+    rows
+    |> Seq.map (fun row -> (row.Heading.IsSome, row.Columns.Length))
+    |> Seq.reduce (fun (preIsSome, preCols) (isSome, cols) ->
+         if preIsSome <> isSome || preCols <> cols then
+           raise (System.ArgumentException())
+         else
+           (isSome, cols))
+    |> ignore
+
 let adjustColumns (cells: Cell list) =
   let maxCol =
     cells
