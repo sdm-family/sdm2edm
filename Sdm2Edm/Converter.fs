@@ -73,6 +73,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     let range = Cells.calcRange cells
     rule.ArroundList(range, groups, cells)
 | Table (groups, contents) ->
+    checkTable contents
     let converted = convertTableContents rule start contents
     let own = Cells.calcRange converted
     rule.ArroundTable(own, groups, converted)
