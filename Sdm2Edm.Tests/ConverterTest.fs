@@ -70,13 +70,13 @@ let ``convertPageでAddressが計算できる`` = test {
   do! assertEquals expected res
 }
 
-let ``checkTableでテーブルの行数もしくは列数が統一されていることがチェックできる`` =
+let ``checkTableSizeでテーブルの行数もしくは列数が統一されていることがチェックできる`` =
   let test (table, thrownException) = test {
     if thrownException then
-      let! e = trap { it (Converter.checkTable table) }
+      let! e = trap { it (Converter.checkTableSize table) }
       do! assertEquals typeof<System.ArgumentException> (e.GetType())
     else
-      Converter.checkTable table
+      Converter.checkTableSize table
       do! pass ()
   }
   parameterize {

@@ -5,7 +5,7 @@ open Edm
 
 let doNothing = ()
 
-let checkTable = function
+let checkTableSize = function
 | RowsTable (_, [])
 | ColumnsTable (_, []) -> doNothing
 | RowsTable (_, cols) ->
@@ -73,7 +73,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     let range = Cells.calcRange cells
     rule.ArroundList(range, groups, cells)
 | Table (groups, contents) ->
-    checkTable contents
+    checkTableSize contents
     let converted = convertTableContents rule start contents
     let own = Cells.calcRange converted
     rule.ArroundTable(own, groups, converted)
