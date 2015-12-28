@@ -35,8 +35,15 @@ module ComponentRange =
   let nextRowAddress range =
     { Row = range.End.Row + 1; Column = range.Start.Column }
 
+  let nextColAddress range =
+    { Row = range.Start.Row; Column = range.End.Column + 1 }
+
   let nextComponentStart range =
     let address = nextRowAddress range
+    { Start = address; End = address }
+
+  let nextColumnStart range =
+    let address = nextColAddress range
     { Start = address; End = address }
 
 type ConvertedResult = Cell list

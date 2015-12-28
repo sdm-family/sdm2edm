@@ -112,3 +112,38 @@ let ``adjustColumnsで列幅を統一できる`` =
            emptyCell (3, 0, 1, 5)])
     run test
   }
+
+let rule2 = { new ConvertionRule() with
+                override __.Text(start, groups, text) = [ tableCell start.Start (text.Segments |> segmentsToString) ]
+                override __.ArroundHeading(start, groups, level, cells) = cells
+                override __.ArroundParagraph(start, groups, cells) = cells
+                override __.ArroundListItem(start, groups, cells) = cells
+                override __.ArroundList(start, groups, cells) = cells 
+                override __.ArroundTableCell(start, groups, cells) = cells
+                override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
+                override __.ArroundTableRow(start, headerRange, groups, cells) = cells
+                override __.ArroundTable(start, groups, cells) = cells
+            }
+
+let rowsTable cols = Table ([], RowsTable ([], cols))
+let oneCol header rows = { Heading = header; Rows = rows }
+let oneCell txt = ([], Paragraph ([], [text txt]))
+
+let ``convertでテーブルが変換できる`` =
+  let test (table, expected) = test {
+    let actual =
+      List.head (Converter.convert rule2 [{ Page.Name = ""; Components = [table] }])
+    do! assertEquals expected actual.Cells
+  }
+  parameterize {
+    case
+      (rowsTable [oneCol None [ oneCell "1" ]],
+       [ tableCell (addr (0, 0)) "1" ])
+    case
+      (rowsTable [oneCol None [ oneCell "1"; oneCell "2" ]],
+       [ tableCell (addr (0, 0)) "1"; tableCell (addr (1, 0)) "2" ])
+    case
+      (rowsTable [oneCol None [ oneCell "1" ]; oneCol None [ oneCell "2" ]],
+       [ tableCell (addr (0, 0)) "1"; tableCell (addr (0, 1)) "2" ])
+    run test
+  }

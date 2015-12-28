@@ -31,6 +31,15 @@ let textCell { Address.Row = row; Column = col } txt = {
   Data = Other txt
 }
 
+let tableCell { Address.Row = row; Column = col } txt = {
+  Cell.Row = row
+  Column = col
+  MergedRows = 1
+  MergedColumns = 1
+  Format = format
+  Data = Other txt
+}
+
 let addr (row, col) = { Address.Row = row; Column = col }
 
 let range (x, y) = (addr x, addr y)

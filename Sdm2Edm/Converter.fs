@@ -94,7 +94,7 @@ and convertTableContents (rule: ConvertionRule) (start: ComponentRange) = functi
                        let convertedCells = converted |> List.map (fun (_, _, c) -> c)
                        let own = Cells.calcRange convertedCells
                        let convertedCells = rule.ArroundTableColumn(own, headerRange, groups, convertedCells)
-                       let next = Cells.calcRange convertedCells |> ComponentRange.nextComponentStart
+                       let next = Cells.calcRange convertedCells |> ComponentRange.nextColumnStart
                        Some (converted, (next, xs))
                    | _ -> None)
     |> List.concat
