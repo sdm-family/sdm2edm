@@ -95,7 +95,9 @@ let ``checkTableSizeでテーブルの行数もしくは列数が統一されて
 
 let ``adjustColumnsで列幅を統一できる`` =
   let test (cells, expected) = test {
-    do! assertEquals expected (Converter.adjustColumns cells)
+    let targets = cells |> List.map (fun c -> (0, 0, c))
+    let actuals = Converter.adjustColumns targets |> List.map (fun (_, _, c) -> c)
+    do! assertEquals expected actuals
   }
   parameterize {
     case ([emptyCell (0, 0, 1, 1)], [emptyCell (0, 0, 1, 1)])

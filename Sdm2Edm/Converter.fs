@@ -27,18 +27,18 @@ let checkTableSize = function
            (isSome, cols))
     |> ignore
 
-let adjustColumns (cells: Cell list) =
+let adjustColumns (cells: (int * int * Cell) list) =
   let maxCol =
     cells
-    |> Seq.map (fun cell -> cell.Column + cell.MergedColumns)
+    |> Seq.map (fun (_, _, cell) -> cell.Column + cell.MergedColumns)
     |> Seq.max
 
   (cells, ([], []))
-  ||> List.foldBack (fun cell (res, rows) ->
-        if rows |> List.contains cell.Row then (cell::res, rows)
+  ||> List.foldBack (fun (r, c, cell) (res, rows) ->
+        if rows |> List.contains cell.Row then ((r, c, cell)::res, rows)
         else
           let cell = { cell with MergedColumns = cell.MergedColumns + (maxCol - cell.MergedColumns) - cell.Column }
-          (cell::res, cell.Row::rows)
+          ((r, c, cell)::res, cell.Row::rows)
       )
   |> fst
 
@@ -74,25 +74,34 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     rule.ArroundList(range, groups, cells)
 | Table (groups, contents) ->
     checkTableSize contents
-    let converted = convertTableContents rule start contents
-    let own = Cells.calcRange converted
-    rule.ArroundTable(own, groups, converted)
+    let converted = convertTableContents rule start contents // converterも返すようにして、TableConverterを抽象クラス化したほうがいいかも？その場合はループもどうにかする必要がある(今は行で回している)
+    let convertedCells =
+      let converter = TableConverter(converted)
+      for rowId in 0..(converter.Rows - 1) do
+        converter.AdjustRowAddress(rowId)
+        converter.ExtendRowEndToUnify(rowId)
+      converter.Cells
+    let own = Cells.calcRange convertedCells
+    rule.ArroundTable(own, groups, convertedCells)
 and convertTableContents (rule: ConvertionRule) (start: ComponentRange) = function
 | RowsTable (groups, contents) ->
+    let contents =
+      contents |> List.mapi (fun i c -> (i, c))
     (start, contents)
     |> Seq.unfold (function
                    | start, x::xs ->
                        let converted, headerRange = convertRowsTableContents rule start groups x
-                       let own = Cells.calcRange converted
-                       let converted = rule.ArroundTableColumn(own, headerRange, groups, converted)
-                       let next = Cells.calcRange converted |> ComponentRange.nextComponentStart
+                       let convertedCells = converted |> List.map (fun (_, _, c) -> c)
+                       let own = Cells.calcRange convertedCells
+                       let convertedCells = rule.ArroundTableColumn(own, headerRange, groups, convertedCells)
+                       let next = Cells.calcRange convertedCells |> ComponentRange.nextComponentStart
                        Some (converted, (next, xs))
                    | _ -> None)
     |> List.concat
 | ColumnsTable (groups, contents) ->
     // TODO : 実装
     []
-and convertRowsTableContents (rule: ConvertionRule) (start: ComponentRange) (groups: ColumnStyleGroup list) (contents: ColumnContents) =
+and convertRowsTableContents (rule: ConvertionRule) (start: ComponentRange) (groups: ColumnStyleGroup list) (colId, contents: ColumnContents) =
   let headerCells =
     match contents.Heading with
     | Some header -> convertCell rule start header.StyleGroups header.Content
@@ -103,13 +112,17 @@ and convertRowsTableContents (rule: ConvertionRule) (start: ComponentRange) (gro
     | _ ->
         let headerRange = Cells.calcRange headerCells
         (headerRange, (headerRange |> ComponentRange.nextComponentStart))
+  let headerCells =
+    headerCells |> List.map (fun c -> (0, colId, c))
+  let offset = match contents.Heading with Some _ -> 1 | _ -> 0
+
   let cells =
-    (next, contents.Rows)
+    (next, contents.Rows |> List.mapi (fun i r -> (i + offset, r)))
     |> Seq.unfold (function
-                   | start, (groups, x)::rest ->
+                   | start, (i, (groups, x))::rest ->
                        let converted = convertCell rule start groups x
                        let next = Cells.calcRange converted |> ComponentRange.nextComponentStart
-                       Some (converted, (next, rest))
+                       Some (converted |> List.map (fun c -> (i, colId, c)), (next, rest))
                    | _ -> None)
     |> List.concat
   let res =

@@ -54,6 +54,7 @@
     <Content Include="packages.config" />
     <Compile Include="TestUtils.fs" />
     <Compile Include="CellExtensionTest.fs" />
+    <Compile Include="TableConverterTest.fs" />
     <Compile Include="ConverterTest.fs" />
     <Content Include="app.config" />
   </ItemGroup>
