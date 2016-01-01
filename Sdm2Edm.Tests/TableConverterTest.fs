@@ -39,7 +39,7 @@ let ``AdjustRowAddressで指定行のRowにずらし済みの総行数を加算�
     let converter = TableConverter(cells)
     do 
       for col, adjustedRow in adjusteds do
-        converter.SetAdjustedRowForTest(col, adjustedRow)
+        converter.SetAdjustedDataForTest(col, adjustedRow)
     converter.AdjustRowAddress(row)
     do! assertEquals expected (converter.Cells)
   }
@@ -72,10 +72,10 @@ let ``ExtendRowEndToUnifyで指定行の高さをそろえられる`` =
     let converter = TableConverter(cells)
     do 
       for col, adjustedRow in adjusteds do
-        converter.SetAdjustedRowForTest(col, adjustedRow)
+        converter.SetAdjustedDataForTest(col, adjustedRow)
     converter.ExtendRowEndToUnify(row)
     do! assertEquals expectedCells converter.Cells
-    do! assertEquals expectedAdjustedRows converter.GetAdjustedRowsForTest
+    do! assertEquals expectedAdjustedRows converter.GetAdjustedTableForTest
   }
   parameterize {
     case ([(0, 0) => emptyCell (0, 0, 1, 1)], [(0, 0)], 0, [emptyCell (0, 0, 1, 1)], [0])

@@ -29,9 +29,7 @@ type TableConverter (cells: (int * int * Cell) list) =
   let dataWithIndexingByRow = ResizeArray<ResizeArray<MutableCells>>()
   let dataWithIndexingByCol = ResizeArray<ResizeArray<MutableCells>>()
 
-  let mutable adjustedRows = [||]
-
-  do
+  let initIndex () =
     for r, c, cell in cells do
       let cell = MutableCell(cell)
       match dataWithIndexingByRow.TryGet(r) with
@@ -52,22 +50,26 @@ type TableConverter (cells: (int * int * Cell) list) =
           | None -> rows.Add({ Values = ResizeArray([|cell|]) })
           | Some cells -> cells.Values.Add(cell)
 
-    // colIdごとのずらした総行数を保持する配列の初期値を設定
-    adjustedRows <- Array.zeroCreate dataWithIndexingByCol.Count
+  let mutable adjustedTable = [||]
 
-  let adjustedRows = adjustedRows
+  do
+    initIndex ()
+    // colIdごとのずらした総行数を保持する配列の初期値を設定
+    adjustedTable <- Array.zeroCreate dataWithIndexingByCol.Count
+
+  let adjustedTable = adjustedTable
 
   member __.Rows = dataWithIndexingByRow.Count
   member __.Columns = dataWithIndexingByCol.Count
 
-  member internal __.SetAdjustedRowForTest(colId, newRowId) = adjustedRows.[colId] <- newRowId
-  member internal __.GetAdjustedRowsForTest = List.ofArray adjustedRows
+  member internal __.SetAdjustedDataForTest(colId, newRowId) = adjustedTable.[colId] <- newRowId
+  member internal __.GetAdjustedTableForTest = List.ofArray adjustedTable
 
   /// 指定したrowを持つセルのRowの値に、対応する列で伸ばした総行数を加算します。
   member __.AdjustRowAddress(row) =
     let cols = dataWithIndexingByRow.[row]
     for colId in 0..(cols.Count - 1) do
-      let rows = adjustedRows.[colId]
+      let rows = adjustedTable.[colId]
       for cell in cols.[colId].Values do
         cell.Row <- cell.Row + rows
 
@@ -95,7 +97,7 @@ type TableConverter (cells: (int * int * Cell) list) =
           yield target.MergedRows - originalMergedRows
       }
       // 同じcolIdを持つセルの伸ばした中で最も短い部分が次の行に波及する行数になる
-      adjustedRows.[colId] <- adjustedRows.[colId] + (extends |> Seq.min)
+      adjustedTable.[colId] <- adjustedTable.[colId] + (extends |> Seq.min)
 
   member __.Cells =
     dataWithIndexingByRow
