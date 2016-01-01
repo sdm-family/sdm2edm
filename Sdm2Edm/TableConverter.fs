@@ -26,25 +26,25 @@ type MutableCells = {
 }
 
 type TableConverter (cells: (int * int * Cell) list) =
-  let dataWithIndexingByRow = ResizeArray<ResizeArray<MutableCells>>()
-  let dataWithIndexingByCol = ResizeArray<ResizeArray<MutableCells>>()
+  let rowIndexForCols = ResizeArray<ResizeArray<MutableCells>>()
+  let colIndexForRows = ResizeArray<ResizeArray<MutableCells>>()
 
   let initIndex () =
     for r, c, cell in cells do
       let cell = MutableCell(cell)
-      match dataWithIndexingByRow.TryGet(r) with
+      match rowIndexForCols.TryGet(r) with
       | None ->
           let cols = ResizeArray([| { Values = ResizeArray([|cell|]) } |])
-          dataWithIndexingByRow.Add(cols)
+          rowIndexForCols.Add(cols)
       | Some cols ->
           match cols.TryGet(c) with
           | None -> cols.Add({ Values = ResizeArray([|cell|]) })
           | Some cells -> cells.Values.Add(cell)
       
-      match dataWithIndexingByCol.TryGet(c) with
+      match colIndexForRows.TryGet(c) with
       | None ->
           let rows = ResizeArray([| { Values = ResizeArray([|cell|]) } |])
-          dataWithIndexingByCol.Add(rows)
+          colIndexForRows.Add(rows)
       | Some rows ->
           match rows.TryGet(r) with
           | None -> rows.Add({ Values = ResizeArray([|cell|]) })
@@ -55,32 +55,32 @@ type TableConverter (cells: (int * int * Cell) list) =
   do
     initIndex ()
     // colIdごとのずらした総行数を保持する配列の初期値を設定
-    adjustedTable <- Array.zeroCreate dataWithIndexingByCol.Count
+    adjustedTable <- Array.zeroCreate colIndexForRows.Count
 
   let adjustedTable = adjustedTable
 
-  member __.Rows = dataWithIndexingByRow.Count
-  member __.Columns = dataWithIndexingByCol.Count
+  member __.Rows = rowIndexForCols.Count
+  member __.Columns = colIndexForRows.Count
 
   member internal __.SetAdjustedDataForTest(colId, newRowId) = adjustedTable.[colId] <- newRowId
   member internal __.GetAdjustedTableForTest = List.ofArray adjustedTable
 
   /// 指定したrowを持つセルのRowの値に、対応する列で伸ばした総行数を加算します。
   member __.AdjustRowAddress(row) =
-    let cols = dataWithIndexingByRow.[row]
+    let cols = rowIndexForCols.[row]
     for colId in 0..(cols.Count - 1) do
       let rows = adjustedTable.[colId]
       for cell in cols.[colId].Values do
         cell.Row <- cell.Row + rows
 
   member internal __.MaxRowAddress(row) =
-    let cols = dataWithIndexingByRow.[row]
+    let cols = rowIndexForCols.[row]
     cols |> Seq.collect (fun col -> col.Values |> Seq.map (fun cell -> cell.Row + cell.MergedRows)) |> Seq.max 
 
   /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
   member this.ExtendRowEndToUnify(row) =
     let maxRowAddr = this.MaxRowAddress(row)
-    let cols = dataWithIndexingByRow.[row]
+    let cols = rowIndexForCols.[row]
     for colId in 0..(cols.Count - 1) do
       // 実セルの最後のセル(=実列アドレスが同じもののうち一番大きい行アドレスを持つセル)のみ、行アドレスを伸ばす対象にする
       // でないと、同一実アドレスに複数のセルがあった際に重なり合ってしまってEdm側でエラーになってしまう
@@ -100,7 +100,7 @@ type TableConverter (cells: (int * int * Cell) list) =
       adjustedTable.[colId] <- adjustedTable.[colId] + (extends |> Seq.min)
 
   member __.Cells =
-    dataWithIndexingByRow
+    rowIndexForCols
     |> Seq.collect (fun cols ->
          cols |> Seq.collect (fun col -> col.Values))
     |> Seq.sortBy (fun cell -> (cell.Row, cell.Column))
