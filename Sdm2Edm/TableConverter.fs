@@ -68,13 +68,15 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
   member internal __.SetAdjustedDataForTest(colId, newRowId) = adjustedTable.[colId] <- newRowId
   member internal __.GetAdjustedTableForTest = List.ofArray adjustedTable
 
-  /// 指定したrowを持つセルのRowの値に、対応する列で伸ばした総行数を加算します。
-  member __.AdjustRowAddress(row) =
-    let cols = index.[row]
-    for colId in 0..(cols.Count - 1) do
-      let rows = adjustedTable.[colId]
-      for cell in cols.[colId].Values do
-        cell.Row <- cell.Row + rows
+  /// idで指定したrow/colを持つセルのRow/Columnの値に、対応する列/行で伸ばした総行数/総列数を加算します。
+  member __.AdjustAddress(id) =
+    let xs = index.[id]
+    for i in 0..(xs.Count - 1) do
+      let adjusted = adjustedTable.[i]
+      for cell in xs.[i].Values do
+        match idxType with
+        | RowIndex -> cell.Row <- cell.Row + adjusted
+        | ColIndex -> cell.Column <- cell.Column + adjusted
 
   member internal __.MaxRowAddress(row) =
     let cols = index.[row]

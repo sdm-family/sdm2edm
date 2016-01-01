@@ -40,7 +40,7 @@ let ``AdjustRowAddressで指定行のRowにずらし済みの総行数を加算�
     do 
       for col, adjustedRow in adjusteds do
         converter.SetAdjustedDataForTest(col, adjustedRow)
-    converter.AdjustRowAddress(row)
+    converter.AdjustAddress(row)
     do! assertEquals expected (converter.Cells)
   }
   parameterize {

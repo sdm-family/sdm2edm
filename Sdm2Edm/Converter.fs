@@ -78,7 +78,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     let convertedCells =
       let converter = TableConverter(converted)
       for rowId in 0..(converter.Rows - 1) do
-        converter.AdjustRowAddress(rowId)
+        converter.AdjustAddress(rowId)
         converter.ExtendRowEndToUnify(rowId)
       converter.Cells
     let own = Cells.calcRange convertedCells
