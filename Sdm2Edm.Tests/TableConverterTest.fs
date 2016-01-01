@@ -8,26 +8,26 @@ open Edm
 
 let (=>) (r, c) cell = (r, c, cell)
 
-let ``空のTableConverterのインスタンスが生成できる`` = test {
-  let converter = TableConverter([])
+let ``空のRowsTableConverterのインスタンスが生成できる`` = test {
+  let converter = RowsTableConverter([])
   do! assertEquals [] converter.Cells
   do! assertEquals 0 converter.Rows
   do! assertEquals 0 converter.Columns
 }
 
-let ``1つの要素を持つTableConverterのインスタンスが生成できる`` = test {
-  let converter = TableConverter([(0, 0) => emptyCell (0, 0, 1, 1)])
+let ``1つの要素を持つRowsTableConverterのインスタンスが生成できる`` = test {
+  let converter = RowsTableConverter([(0, 0) => emptyCell (0, 0, 1, 1)])
   do! assertEquals [emptyCell (0, 0, 1, 1)] converter.Cells
   do! assertEquals 1 converter.Rows
   do! assertEquals 1 converter.Columns
 }
 
-let ``複数要素を持つTableConverterのインスタンスが生成できる`` = test {
+let ``複数要素を持つRowsTableConverterのインスタンスが生成できる`` = test {
   let converter =
-    TableConverter([(0, 2) => emptyCell (0, 2, 1, 1)
-                    (1, 0) => emptyCell (1, 0, 1, 1)
-                    (0, 0) => emptyCell (0, 0, 1, 1)
-                    (0, 1) => emptyCell (0, 1, 1, 1)])
+    RowsTableConverter([(0, 2) => emptyCell (0, 2, 1, 1)
+                        (1, 0) => emptyCell (1, 0, 1, 1)
+                        (0, 0) => emptyCell (0, 0, 1, 1)
+                        (0, 1) => emptyCell (0, 1, 1, 1)])
   // 要素はアドレスでソートされる
   do! assertEquals [emptyCell (0, 0, 1, 1); emptyCell (0, 1, 1, 1); emptyCell (0, 2, 1, 1); emptyCell (1, 0, 1, 1)] converter.Cells
   do! assertEquals 2 converter.Rows
@@ -36,7 +36,7 @@ let ``複数要素を持つTableConverterのインスタンスが生成できる
 
 let ``AdjustRowAddressで指定行のRowにずらし済みの総行数を加算できる`` =
   let test (cells, adjusteds, row, expected) = test {
-    let converter = TableConverter(cells)
+    let converter = RowsTableConverter(cells)
     do 
       for col, adjustedRow in adjusteds do
         converter.SetAdjustedDataForTest(col, adjustedRow)
@@ -54,7 +54,7 @@ let ``MaxRowAddressで指定行での最大行アドレスを算出できる`` =
   let empty row =
     (row, 0) => emptyCell (row, 0, 1, 1)
   let test (cells, row, expected) = test {
-    let converter = TableConverter(cells)
+    let converter = RowsTableConverter(cells)
     do! assertEquals expected (converter.MaxRowAddress(row))
   }
   parameterize {
@@ -69,7 +69,7 @@ let ``MaxRowAddressで指定行での最大行アドレスを算出できる`` =
 
 let ``ExtendRowEndToUnifyで指定行の高さをそろえられる`` =
   let test (cells, adjusteds, row, expectedCells, expectedAdjustedRows) = test{
-    let converter = TableConverter(cells)
+    let converter = RowsTableConverter(cells)
     do 
       for col, adjustedRow in adjusteds do
         converter.SetAdjustedDataForTest(col, adjustedRow)

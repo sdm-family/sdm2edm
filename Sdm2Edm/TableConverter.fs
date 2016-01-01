@@ -58,7 +58,8 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
 
   let adjustedTable = adjustedTable
 
-  new (cells) = TableConverter(cells, RowIndex)
+  member __.Index = index
+  member __.AdjustedTable = adjustedTable
 
   member __.Rows =
     match idxType with RowIndex -> index.Count | ColIndex -> adjustedTable.Length
@@ -82,30 +83,26 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
     let xs = index.[id]
     xs |> Seq.collect (fun x -> x.Values |> Seq.map addresser) |> Seq.max
 
-  member internal this.MaxRowAddress(row) =
-    this.MaxAddress(row, fun cell -> cell.Row + cell.MergedRows)
-
-  /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
-  member this.ExtendRowEndToUnify(row) =
-    let maxRowAddr = this.MaxRowAddress(row)
-    let cols = index.[row]
-    for colId in 0..(cols.Count - 1) do
-      // 実セルの最後のセル(=実列アドレスが同じもののうち一番大きい行アドレスを持つセル)のみ、行アドレスを伸ばす対象にする
+  member internal this.ExtendToUnify(x, maxAddress, groupingKey) =
+    let maxAddr = maxAddress x
+    let ys = this.Index.[x]
+    for id in 0..(ys.Count - 1) do
+      // 実セルの最後のセル(=実列/行アドレスが同じもののうち一番大きい行/列アドレスを持つセル)のみ、行/列アドレスを伸ばす対象にする
       // でないと、同一実アドレスに複数のセルがあった際に重なり合ってしまってEdm側でエラーになってしまう
       let targets =
-        cols.[colId].Values
-        |> Seq.groupBy (fun cell -> cell.Column)
+        ys.[id].Values
+        |> Seq.groupBy groupingKey
         |> Seq.map (snd >> Seq.last)
 
       let extends = seq {
         for target in targets do
           let originalMergedRows = target.MergedRows
-          // ここで副作用によって最大行アドレス(maxRowAddr)まで伸ばしていることに注意！
-          target.MergedRows <- target.MergedRows + (maxRowAddr - target.MergedRows) - target.Row
+          // ここで副作用によって最大行アドレス(maxAddr)まで伸ばしていることに注意！
+          target.MergedRows <- maxAddr - target.Row
           yield target.MergedRows - originalMergedRows
       }
-      // 同じcolIdを持つセルの伸ばした中で最も短い部分が次の行に波及する行数になる
-      adjustedTable.[colId] <- adjustedTable.[colId] + (extends |> Seq.min)
+      // 同じidを持つセルの伸ばした中で最も短い部分が次の行に波及する行数になる
+      this.AdjustedTable.[id] <- this.AdjustedTable.[id] + (extends |> Seq.min)
 
   member __.Cells =
     index
@@ -114,3 +111,12 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
     |> Seq.sortBy (fun cell -> (cell.Row, cell.Column))
     |> Seq.map (fun cell -> cell.ToCell())
     |> Seq.toList
+
+type RowsTableConverter(cells: (int * int * Cell) list) =
+  inherit TableConverter(cells, RowIndex)
+
+  member internal this.MaxRowAddress(row) =
+    this.MaxAddress(row, fun cell -> cell.Row + cell.MergedRows)
+
+  /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
+  member this.ExtendRowEndToUnify(row) = this.ExtendToUnify(row, this.MaxRowAddress, (fun cell -> cell.Column))

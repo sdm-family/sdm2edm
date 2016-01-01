@@ -76,7 +76,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     checkTableSize contents
     let converted = convertTableContents rule start contents // converterも返すようにして、TableConverterを抽象クラス化したほうがいいかも？その場合はループもどうにかする必要がある(今は行で回している)
     let convertedCells =
-      let converter = TableConverter(converted)
+      let converter = RowsTableConverter(converted)
       for rowId in 0..(converter.Rows - 1) do
         converter.AdjustAddress(rowId)
         converter.ExtendRowEndToUnify(rowId)
