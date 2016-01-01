@@ -78,9 +78,12 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
         | RowIndex -> cell.Row <- cell.Row + adjusted
         | ColIndex -> cell.Column <- cell.Column + adjusted
 
-  member internal __.MaxRowAddress(row) =
-    let cols = index.[row]
-    cols |> Seq.collect (fun col -> col.Values |> Seq.map (fun cell -> cell.Row + cell.MergedRows)) |> Seq.max 
+  member internal __.MaxAddress(id, (addresser: _ -> int)) =
+    let xs = index.[id]
+    xs |> Seq.collect (fun x -> x.Values |> Seq.map addresser) |> Seq.max
+
+  member internal this.MaxRowAddress(row) =
+    this.MaxAddress(row, fun cell -> cell.Row + cell.MergedRows)
 
   /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
   member this.ExtendRowEndToUnify(row) =
