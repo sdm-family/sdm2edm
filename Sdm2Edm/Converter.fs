@@ -74,15 +74,9 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
     rule.ArroundList(range, groups, cells)
 | Table (groups, contents) ->
     checkTableSize contents
-    let converted = convertTableContents rule start contents // converterも返すようにして、TableConverterを抽象クラス化したほうがいいかも？その場合はループもどうにかする必要がある(今は行で回している)
-    let convertedCells =
-      let converter = RowsTableConverter(converted)
-      for rowId in 0..(converter.Rows - 1) do
-        converter.AdjustAddress(rowId)
-        converter.ExtendRowEndToUnify(rowId)
-      converter.Cells
-    let own = Cells.calcRange convertedCells
-    rule.ArroundTable(own, groups, convertedCells)
+    let converted = convertTableContents rule start contents
+    let own = Cells.calcRange converted
+    rule.ArroundTable(own, groups, converted)
 and convertTableContents (rule: ConvertionRule) (start: ComponentRange) = function
 | RowsTable (groups, contents) ->
     let contents =
@@ -98,6 +92,7 @@ and convertTableContents (rule: ConvertionRule) (start: ComponentRange) = functi
                        Some (converted, (next, xs))
                    | _ -> None)
     |> List.concat
+    |> RowsTableConverter.Convert
 | ColumnsTable (groups, contents) ->
     // TODO : 実装
     []

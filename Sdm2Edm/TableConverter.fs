@@ -120,3 +120,10 @@ type RowsTableConverter(cells: (int * int * Cell) list) =
 
   /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
   member this.ExtendRowEndToUnify(row) = this.ExtendToUnify(row, this.MaxRowAddress, (fun cell -> cell.Column))
+
+  static member Convert(cells) =
+    let converter = RowsTableConverter(cells)
+    for rowId in 0..(converter.Rows - 1) do
+      converter.AdjustAddress(rowId)
+      converter.ExtendRowEndToUnify(rowId)
+    converter.Cells
