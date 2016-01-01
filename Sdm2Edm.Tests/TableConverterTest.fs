@@ -31,7 +31,7 @@ let ``複数要素を持つTableConverterのインスタンスが生成できる
   // 要素はアドレスでソートされる
   do! assertEquals [emptyCell (0, 0, 1, 1); emptyCell (0, 1, 1, 1); emptyCell (0, 2, 1, 1); emptyCell (1, 0, 1, 1)] converter.Cells
   do! assertEquals 2 converter.Rows
-  do! assertEquals 2 converter.Columns
+  do! assertEquals 3 converter.Columns
 }
 
 let ``AdjustRowAddressで指定行のRowにずらし済みの総行数を加算できる`` =
