@@ -83,6 +83,18 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
     let xs = index.[id]
     xs |> Seq.collect (fun x -> x.Values |> Seq.map addresser) |> Seq.max
 
+  member internal __.Merged(target: MutableCell) =
+    match idxType with
+    | RowIndex -> target.MergedRows
+    | ColIndex -> target.MergedColumns
+
+  member internal __.UpdateMerged(target: MutableCell, maxAddr) =
+    match idxType with
+    | RowIndex ->
+        target.MergedRows <- maxAddr - target.Row
+    | ColIndex ->
+        target.MergedColumns <- maxAddr - target.Column
+
   member internal this.ExtendToUnify(x, maxAddress, groupingKey) =
     let maxAddr = maxAddress x
     let ys = this.Index.[x]
@@ -96,10 +108,10 @@ type TableConverter (cells: (int * int * Cell) list, idxType: IndexType) =
 
       let extends = seq {
         for target in targets do
-          let originalMergedRows = target.MergedRows
+          let originalMerged = this.Merged(target)
           // ここで副作用によって最大行アドレス(maxAddr)まで伸ばしていることに注意！
-          target.MergedRows <- maxAddr - target.Row
-          yield target.MergedRows - originalMergedRows
+          this.UpdateMerged(target, maxAddr)
+          yield this.Merged(target) - originalMerged
       }
       // 同じidを持つセルの伸ばした中で最も短い部分が次の行に波及する行数になる
       this.AdjustedTable.[id] <- this.AdjustedTable.[id] + (extends |> Seq.min)
@@ -119,11 +131,26 @@ type RowsTableConverter(cells: (int * int * Cell) list) =
     this.MaxAddress(row, fun cell -> cell.Row + cell.MergedRows)
 
   /// 行テーブルの行ごとの高さを統一するために、指定したrowを持つセルの一列一列に対して、その列内の最後の行アドレス(Row)を持つセルのMergedRowsを最大行アドレスまで伸ばします。
-  member this.ExtendRowEndToUnify(row) = this.ExtendToUnify(row, this.MaxRowAddress, (fun cell -> cell.Column))
+  member this.ExtendRowEndToUnify(row) = this.ExtendToUnify(row, this.MaxRowAddress, fun cell -> cell.Column)
 
   static member Convert(cells) =
     let converter = RowsTableConverter(cells)
     for rowId in 0..(converter.Rows - 1) do
       converter.AdjustAddress(rowId)
       converter.ExtendRowEndToUnify(rowId)
+    converter.Cells
+
+type ColsTableConverter(cells: (int * int * Cell) list) =
+  inherit TableConverter(cells, ColIndex)
+
+  member internal this.MaxColAddress(col) =
+    this.MaxAddress(col, fun cell -> cell.Column + cell.MergedColumns)
+
+  member this.ExtendColEndToUnify(col) = this.ExtendToUnify(col, this.MaxColAddress, fun cell -> cell.Row)
+
+  static member Convert(cells) =
+    let converter = ColsTableConverter(cells)
+    for colId in 0..(converter.Columns - 1) do
+      converter.AdjustAddress(colId)
+      converter.ExtendColEndToUnify(colId)
     converter.Cells

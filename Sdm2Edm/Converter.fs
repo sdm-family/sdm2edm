@@ -37,8 +37,23 @@ let adjustColumns (cells: (int * int * Cell) list) =
   ||> List.foldBack (fun (r, c, cell) (res, rows) ->
         if rows |> List.contains cell.Row then ((r, c, cell)::res, rows)
         else
-          let cell = { cell with MergedColumns = cell.MergedColumns + (maxCol - cell.MergedColumns) - cell.Column }
+          let cell = { cell with MergedColumns = maxCol - cell.Column }
           ((r, c, cell)::res, cell.Row::rows)
+      )
+  |> fst
+
+let adjustRows (cells: (int * int * Cell) list) =
+  let maxRow =
+    cells
+    |> Seq.map (fun (_, _, cell) -> cell.Row + cell.MergedRows)
+    |> Seq.max
+
+  (cells, ([], []))
+  ||> List.foldBack (fun (r, c, cell) (res, cols) ->
+        if cols |> List.contains cell.Column then ((r, c, cell)::res, cols)
+        else
+          let cell = { cell with MergedRows = maxRow - cell.Row }
+          ((r, c, cell)::res, cell.Column::cols)
       )
   |> fst
 
@@ -94,8 +109,20 @@ and convertTableContents (rule: ConvertionRule) (start: ComponentRange) = functi
     |> List.concat
     |> RowsTableConverter.Convert
 | ColumnsTable (groups, contents) ->
-    // TODO : 実装
-    []
+    let contents =
+      contents |> List.mapi (fun i c -> (i, c))
+    (start, contents)
+    |> Seq.unfold (function
+                   | start, x::xs ->
+                       let converted, headerRange = convertColumnsTableContents rule start groups x
+                       let convertedCells = converted |> List.map (fun (_, _, c) -> c)
+                       let own = Cells.calcRange convertedCells
+                       let convertedCells = rule.ArroundTableRow(own, headerRange, groups, convertedCells)
+                       let next = Cells.calcRange convertedCells |> ComponentRange.nextComponentStart
+                       Some (converted, (next, xs))
+                   | _ -> None)
+    |> List.concat
+    |> ColsTableConverter.Convert
 and convertRowsTableContents (rule: ConvertionRule) (start: ComponentRange) (groups: ColumnStyleGroup list) (colId, contents: ColumnContents) =
   let headerCells =
     match contents.Heading with
@@ -124,9 +151,34 @@ and convertRowsTableContents (rule: ConvertionRule) (start: ComponentRange) (gro
     [ yield! headerCells; yield! cells ]
     |> adjustColumns
   (res, headerRange)
-and convertColumnsTableContents (rule: ConvertionRule) (start: ComponentRange) (groups: RowStyleGroup list) (contents: RowContents) =
-  // TODO : 実装
-  []
+and convertColumnsTableContents (rule: ConvertionRule) (start: ComponentRange) (groups: RowStyleGroup list) (rowId, contents: RowContents) =
+  let headerCells =
+    match contents.Heading with
+    | Some header -> convertCell rule start header.StyleGroups header.Content
+    | None -> []
+  let headerRange, next =
+    match headerCells with
+    | [] -> dup start
+    | _ ->
+        let headerRange = Cells.calcRange headerCells
+        (headerRange, (headerRange |> ComponentRange.nextColumnStart))
+  let headerCells =
+    headerCells |> List.map (fun c -> (rowId, 0, c))
+  let offset = match contents.Heading with Some _ -> 1 | _ -> 0
+
+  let cells =
+    (next, contents.Columns |> List.mapi (fun i r -> (i + offset, r)))
+    |> Seq.unfold (function
+                   | start, (i, (groups, x))::rest ->
+                       let converted = convertCell rule start groups x
+                       let next = Cells.calcRange converted |> ComponentRange.nextColumnStart
+                       Some (converted |> List.map (fun c -> (rowId, i, c)), (next, rest))
+                   | _ -> None)
+    |> List.concat
+  let res =
+    [ yield! headerCells; yield! cells ]
+    |> adjustRows
+  (res, headerRange)
 and convertCell (rule: ConvertionRule) (start: ComponentRange) (groups: CellStyleGroup list) (cell: Component) =
   let converted = convertComponent rule start cell
   let own = Cells.calcRange converted

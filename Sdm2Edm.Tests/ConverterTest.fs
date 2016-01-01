@@ -126,7 +126,9 @@ let rule2 = { new ConvertionRule() with
             }
 
 let rowsTable cols = Table ([], RowsTable ([], cols))
+let colsTable rows = Table ([], ColumnsTable ([], rows))
 let oneCol header rows = { Heading = header; Rows = rows }
+let oneRow header cols = { Heading = header; Columns = cols }
 let oneCell txt = ([], Paragraph ([], [text txt]))
 
 let ``convertでテーブルが変換できる`` =
@@ -145,5 +147,14 @@ let ``convertでテーブルが変換できる`` =
     case
       (rowsTable [oneCol None [ oneCell "1" ]; oneCol None [ oneCell "2" ]],
        [ tableCell (addr (0, 0)) "1"; tableCell (addr (0, 1)) "2" ])
+    case
+      (colsTable [oneRow None [ oneCell "1" ]],
+       [ tableCell (addr (0, 0)) "1" ])
+    case
+      (colsTable [oneRow None [ oneCell "1"; oneCell "2" ]],
+       [ tableCell (addr (0, 0)) "1"; tableCell (addr (0, 1)) "2" ])
+    case
+      (colsTable [oneRow None [ oneCell "1" ]; oneRow None [ oneCell "2" ]],
+       [ tableCell (addr (0, 0)) "1"; tableCell (addr (1, 0)) "2" ])
     run test
   }
