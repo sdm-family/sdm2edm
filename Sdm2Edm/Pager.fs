@@ -55,7 +55,7 @@ type BreakSheetPager(info: PagerInfo) =
   inherit Pager(info)
 
   let splitRow row cells =
-    cells |> List.partition (fun cell -> cell.Row < row)
+    cells |> List.partition (fun cell -> cell.Row + cell.MergedRows < row + 1)
 
   override this.SheetToPage(sheet) =
     let headerRange = this.HeaderRange
@@ -84,7 +84,11 @@ type BreakSheetPager(info: PagerInfo) =
                            | [] -> ()
                            | _ -> this.IncrPageNo()
                          let sheet = { Name = this.CreateSheetName(sheet.Name); Cells = oneSheetCells }
-                         Some(sheet, rest |> List.map (fun cell -> { cell with Row = cell.Row - info.MaxRows })))
+                         match rest with
+                         | [] -> Some (sheet, [])
+                         | rest ->
+                             let min = rest.Head.Row
+                             Some (sheet, rest |> List.map (fun cell -> { cell with Row = cell.Row - min })))
       |> Seq.toList
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

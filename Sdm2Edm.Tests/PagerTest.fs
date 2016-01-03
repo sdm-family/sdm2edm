@@ -58,5 +58,15 @@ let ``ページがあふれたら改シートするPagerが使える`` =
                                        yield emptyCell (3, 0, 1, 1) ] }
             { Name = "1(3)"; Cells = [ yield! createHeader 3
                                        yield emptyCell (2, 0, 1, 2) ] }])
+
+    case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1)
+                                    emptyCell (1, 0, 2, 1)
+                                    emptyCell (3, 0, 1, 1) ] } ],
+          [ { Name = "1"; Cells = [ yield! createHeader 1
+                                    yield emptyCell (2, 0, 1, 1) ] }
+            { Name = "1(2)"; Cells = [ yield! createHeader 2
+                                       yield emptyCell (2, 0, 2, 1) ] }
+            { Name = "1(3)"; Cells = [ yield! createHeader 3
+                                       yield emptyCell (2, 0, 1, 1) ] } ])
     run test
   }
