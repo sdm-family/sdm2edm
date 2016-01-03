@@ -57,6 +57,8 @@
     <Compile Include="CellExtension.fs" />
     <Compile Include="TableConverter.fs" />
     <Compile Include="Converter.fs" />
+    <Compile Include="PagerInfo.fs" />
+    <Compile Include="Pager.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Edm">
