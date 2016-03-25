@@ -45,8 +45,8 @@ let ``convertPageでAddressが計算できる`` = test {
         Heading ([], 2, text "heading2")
         Paragraph ([], [ text "first line"; text "second line" ])
         Paragraph ([], [ text "other paragraph" ])
-        List ([], [ Paragraph ([], [ text "list item 1" ])
-                    Paragraph ([], [ text "list"; text "item"; text "1" ]) ])
+        List ([], [ [ Paragraph ([], [ text "list item 1" ]) ]
+                    [ Paragraph ([], [ text "list"; text "item"; text "1" ]) ] ])
       ]
   }
   let res = Converter.convertPage rule page
@@ -81,15 +81,15 @@ let ``checkTableSizeでテーブルの行数もしくは列数が統一されて
   }
   parameterize {
     case (RowsTable ([], []), false)
-    case (RowsTable ([], [{ Heading = None; Rows = [([], Paragraph([], []))] }
-                          { Heading = None; Rows = [([], Paragraph([], []))] }]), false)
+    case (RowsTable ([], [{ Heading = None; Rows = [([], [ Paragraph([], []) ])] }
+                          { Heading = None; Rows = [([], [ Paragraph([], []) ])] }]), false)
     case (RowsTable ([], [{ Heading = None; Rows = [] }
-                          { Heading = None; Rows = [([], Paragraph([], []))] }]), true)
+                          { Heading = None; Rows = [([], [ Paragraph([], []) ])] }]), true)
     case (ColumnsTable ([], []), false)
-    case (ColumnsTable ([], [{ Heading = None; Columns = [([], Paragraph([], []))] }
-                             { Heading = None; Columns = [([], Paragraph([], []))] }]), false)
+    case (ColumnsTable ([], [{ Heading = None; Columns = [([], [ Paragraph([], []) ])] }
+                             { Heading = None; Columns = [([], [ Paragraph([], []) ])] }]), false)
     case (ColumnsTable ([], [{ Heading = None; Columns = [] }
-                             { Heading = None; Columns = [([], Paragraph([], []))] }]), true)
+                             { Heading = None; Columns = [([], [ Paragraph([], []) ])] }]), true)
     run test
   }
 
@@ -129,7 +129,7 @@ let rowsTable cols = Table ([], RowsTable ([], cols))
 let colsTable rows = Table ([], ColumnsTable ([], rows))
 let oneCol header rows = { Heading = header; Rows = rows }
 let oneRow header cols = { Heading = header; Columns = cols }
-let oneCell txt = ([], Paragraph ([], [text txt]))
+let oneCell txt = ([], [ Paragraph ([], [text txt]) ])
 
 let ``convertでテーブルが変換できる`` =
   let test (table, expected) = test {

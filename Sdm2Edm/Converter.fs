@@ -78,7 +78,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
       (start, items)
       |> Seq.unfold (function
                      | start, x::xs ->
-                         let converted = convertComponent rule start x
+                         let converted = x |> List.collect (convertComponent rule start)
                          let own = Cells.calcRange converted
                          let converted = rule.ArroundListItem(own, groups, converted)
                          let next = Cells.calcRange converted |> ComponentRange.nextComponentStart
@@ -179,8 +179,8 @@ and convertColumnsTableContents (rule: ConvertionRule) (start: ComponentRange) (
     [ yield! headerCells; yield! cells ]
     |> adjustRows
   (res, headerRange)
-and convertCell (rule: ConvertionRule) (start: ComponentRange) (groups: CellStyleGroup list) (cell: Component) =
-  let converted = convertComponent rule start cell
+and convertCell (rule: ConvertionRule) (start: ComponentRange) (groups: CellStyleGroup list) (cell: Components) =
+  let converted = cell |> List.collect (convertComponent rule start)
   let own = Cells.calcRange converted
   rule.ArroundTableCell(own, groups, converted)
 
