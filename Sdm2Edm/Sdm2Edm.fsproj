@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Edm">
-      <HintPath>..\..\sdm2edm\packages\Edm.1.0.0.0\lib\net46\Edm.dll</HintPath>
+      <HintPath>..\packages\Edm.1.1.1.0\lib\net46\Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
