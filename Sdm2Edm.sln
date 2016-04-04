@@ -7,6 +7,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sdm2Edm", "Sdm2Edm\Sdm2Edm.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sdm2Edm.Tests", "Sdm2Edm.Tests\Sdm2Edm.Tests.fsproj", "{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NLNagoya", "presentations\NLNagoya\NLNagoya.fsproj", "{F186DC66-8267-4958-B97C-B58082DD7703}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "presentations", "presentations", "{26A7B08B-C6B9-4559-95D9-B59E23939601}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +25,15 @@ Global
 		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFF17D08-3AE0-4FBD-8BDA-2996303FD563}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F186DC66-8267-4958-B97C-B58082DD7703}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F186DC66-8267-4958-B97C-B58082DD7703}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F186DC66-8267-4958-B97C-B58082DD7703}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F186DC66-8267-4958-B97C-B58082DD7703}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F186DC66-8267-4958-B97C-B58082DD7703} = {26A7B08B-C6B9-4559-95D9-B59E23939601}
 	EndGlobalSection
 EndGlobal

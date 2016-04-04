@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>cff17d08-3ae0-4fbd-8bda-2996303fd563</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Sdm2Edm.Tests</RootNamespace>
-    <AssemblyName>Sdm2Edm.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
+    <ProjectGuid>f186dc66-8267-4958-b97c-b58082dd7703</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NLNagoya</RootNamespace>
+    <AssemblyName>NLNagoya</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Sdm2Edm.Tests</Name>
+    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
+    <Name>NLNagoya</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +22,9 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Sdm2Edm.Tests.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\NLNagoya.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +33,9 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Sdm2Edm.Tests.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Release\NLNagoya.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -51,40 +55,42 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Program.fs" />
+    <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="TestUtils.fs" />
-    <Compile Include="CellExtensionTest.fs" />
-    <Compile Include="TableConverterTest.fs" />
-    <Compile Include="ConverterTest.fs" />
-    <Compile Include="PagerTest.fs" />
-    <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Edm">
-      <HintPath>..\packages\Edm.2.0.0.0\lib\net46\Edm.dll</HintPath>
+      <HintPath>..\..\packages\Edm.2.0.0.0\lib\net46\Edm.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Edm.Writer.EPPlus">
+      <HintPath>..\..\packages\Edm.Writer.EPPlus.2.0.0.0\lib\net46\Edm.Writer.EPPlus.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EPPlus">
+      <HintPath>..\..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
-    <Reference Include="Persimmon">
-      <HintPath>..\packages\Persimmon.1.0.1\lib\net20\Persimmon.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Sdm">
-      <HintPath>..\packages\Sdm.3.0.0.0\lib\net46\Sdm.dll</HintPath>
+      <HintPath>..\..\packages\Sdm.3.0.0.0\lib\net46\Sdm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Sdm2Edm\Sdm2Edm.fsproj">
+    <ProjectReference Include="..\..\Sdm2Edm\Sdm2Edm.fsproj">
       <Name>Sdm2Edm</Name>
       <Project>{5bfa084e-f029-4100-bd8c-b2e2b5b7b6a1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
