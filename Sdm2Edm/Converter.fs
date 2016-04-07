@@ -196,7 +196,7 @@ let convertPage (rule: ConvertionRule) (page: Page) : Sheet =
                    | _ -> None)
     |> List.concat
 
-  { Sheet.Name = page.Name; Cells = cells }
+  { Sheet.Name = page.Name; Cells = cells; Drawings = [] }
 
 let convert (rule: ConvertionRule) (pages: Page list) : Sheet list =
   pages |> List.map (convertPage rule)

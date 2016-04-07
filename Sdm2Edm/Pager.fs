@@ -83,7 +83,7 @@ type BreakSheetPager(info: PagerInfo) =
                            match rest with
                            | [] -> ()
                            | _ -> this.IncrPageNo()
-                         let sheet = { Name = this.CreateSheetName(sheet.Name); Cells = oneSheetCells }
+                         let sheet = { Name = this.CreateSheetName(sheet.Name); Cells = oneSheetCells; Drawings = [] }
                          match rest with
                          | [] -> Some (sheet, [])
                          | rest ->

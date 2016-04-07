@@ -55,14 +55,22 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Styles.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="Rule.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="template.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="mini.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Edm">
-      <HintPath>..\..\packages\Edm.2.0.0.0\lib\net46\Edm.dll</HintPath>
+      <HintPath>..\..\packages\Edm.2.1.0.0\lib\net46\Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Edm.Writer.EPPlus">
@@ -78,7 +86,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Sdm">
-      <HintPath>..\..\packages\Sdm.3.0.0.0\lib\net46\Sdm.dll</HintPath>
+      <HintPath>..\..\packages\Sdm.3.1.0.0\lib\net46\Sdm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

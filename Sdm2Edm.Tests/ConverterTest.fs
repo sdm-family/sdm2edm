@@ -66,6 +66,7 @@ let ``convertPageでAddressが計算できる`` = test {
         textCell { Address.Row = 7; Column = 1 } "item"
         textCell { Address.Row = 8; Column = 1 } "1"
       ]
+    Drawings = []
   }
   do! assertEquals expected res
 }

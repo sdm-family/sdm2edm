@@ -22,51 +22,51 @@ let ``ページがあふれたら改シートするPagerが使える`` =
   }
   parameterize {
     case ([], [])
-    case ([ { Name = "1"; Cells = [] } ], [ { Name = "1"; Cells = createHeader 1 } ])
-    case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1) ] } ],
-          [ { Name = "1"; Cells = [ yield! createHeader 1; yield emptyCell (2, 0, 1, 1) ] } ])
-    case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1); emptyCell (1, 0, 1, 1) ] } ],
+    case ([ { Name = "1"; Cells = []; Drawings = [] } ], [ { Name = "1"; Cells = createHeader 1; Drawings = [] } ])
+    case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1) ]; Drawings = [] } ],
+          [ { Name = "1"; Cells = [ yield! createHeader 1; yield emptyCell (2, 0, 1, 1) ]; Drawings = [] } ])
+    case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1); emptyCell (1, 0, 1, 1) ]; Drawings = [] } ],
           [ { Name = "1"; Cells = [ yield! createHeader 1
                                     yield emptyCell (2, 0, 1, 1)
-                                    yield emptyCell (3, 0, 1, 1) ] } ])
+                                    yield emptyCell (3, 0, 1, 1) ]; Drawings = [] } ])
 
     case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1); emptyCell (1, 0, 1, 1)
-                                    emptyCell (2, 0, 2, 1) ] } ],
+                                    emptyCell (2, 0, 2, 1) ]; Drawings = [] } ],
           [ { Name = "1"; Cells = [ yield! createHeader 1
                                     yield emptyCell (2, 0, 1, 1)
-                                    yield emptyCell (3, 0, 1, 1) ] }
+                                    yield emptyCell (3, 0, 1, 1) ]; Drawings = [] }
             { Name = "1(2)"; Cells = [ yield! createHeader 2
-                                       yield emptyCell (2, 0, 2, 1) ] }])
+                                       yield emptyCell (2, 0, 2, 1) ]; Drawings = [] }])
 
     case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1); emptyCell (1, 0, 1, 1)
-                                    emptyCell (2, 0, 2, 1); emptyCell (3, 0, 1, 1) ] } ],
+                                    emptyCell (2, 0, 2, 1); emptyCell (3, 0, 1, 1) ]; Drawings = [] } ],
           [ { Name = "1"; Cells = [ yield! createHeader 1
                                     yield emptyCell (2, 0, 1, 1)
-                                    yield emptyCell (3, 0, 1, 1) ] }
+                                    yield emptyCell (3, 0, 1, 1) ]; Drawings = [] }
             { Name = "1(2)"; Cells = [ yield! createHeader 2
                                        yield emptyCell (2, 0, 2, 1)
-                                       yield emptyCell (3, 0, 1, 1) ] }])
+                                       yield emptyCell (3, 0, 1, 1) ]; Drawings = [] }])
 
     case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1); emptyCell (1, 0, 1, 1)
                                     emptyCell (2, 0, 2, 1); emptyCell (3, 0, 1, 1)
-                                    emptyCell (4, 0, 1, 2) ] } ],
+                                    emptyCell (4, 0, 1, 2) ]; Drawings = [] } ],
           [ { Name = "1"; Cells = [ yield! createHeader 1
                                     yield emptyCell (2, 0, 1, 1)
-                                    yield emptyCell (3, 0, 1, 1) ] }
+                                    yield emptyCell (3, 0, 1, 1) ]; Drawings = [] }
             { Name = "1(2)"; Cells = [ yield! createHeader 2
                                        yield emptyCell (2, 0, 2, 1)
-                                       yield emptyCell (3, 0, 1, 1) ] }
+                                       yield emptyCell (3, 0, 1, 1) ]; Drawings = [] }
             { Name = "1(3)"; Cells = [ yield! createHeader 3
-                                       yield emptyCell (2, 0, 1, 2) ] }])
+                                       yield emptyCell (2, 0, 1, 2) ]; Drawings = [] }])
 
     case ([ { Name = "1"; Cells = [ emptyCell (0, 0, 1, 1)
                                     emptyCell (1, 0, 2, 1)
-                                    emptyCell (3, 0, 1, 1) ] } ],
+                                    emptyCell (3, 0, 1, 1) ]; Drawings = [] } ],
           [ { Name = "1"; Cells = [ yield! createHeader 1
-                                    yield emptyCell (2, 0, 1, 1) ] }
+                                    yield emptyCell (2, 0, 1, 1) ]; Drawings = [] }
             { Name = "1(2)"; Cells = [ yield! createHeader 2
-                                       yield emptyCell (2, 0, 2, 1) ] }
+                                       yield emptyCell (2, 0, 2, 1) ]; Drawings = [] }
             { Name = "1(3)"; Cells = [ yield! createHeader 3
-                                       yield emptyCell (2, 0, 1, 1) ] } ])
+                                       yield emptyCell (2, 0, 1, 1) ]; Drawings = [] } ])
     run test
   }
