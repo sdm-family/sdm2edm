@@ -68,6 +68,10 @@ type ConvertionRule(width: int, height: int) =
     data
     |> Data.editRichText (fun txt -> { txt with Segments = txt.Segments |> List.collect splitAndToRed })
 
+  let borderBottom (cell: Cell) =
+    { cell with Format = { cell.Format with Borders = { cell.Format.Borders with Bottom = { Style = ThickBorder; Color = Rgb (255, 0, 0) } }
+                                            Layout = { cell.Format.Layout with VerticalLayout = VLSup WrapText } } }
+
   override __.Text(start, _groups, text) =
     [ Cell.richText (start.Start.Row, start.Start.Column) (1, 1) (RichText.createWithoutFontInfo (text |> Sdm.Text.map toEdmSegment)) ]
   override __.ArroundHeading(_start, groups, _level, cells) =
@@ -83,7 +87,7 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  Row = vmiddle - (titleHeight / 2); MergedRows = titleHeight
                                  Column = hmiddle - (titleWidth / 2); MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateTitlePageFont |> highlightUpper })
+                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateTitlePageFont |> highlightUpper } |> borderBottom)
     | Sdm.Patterns.Contains Styles.subTitle ->
         let subTitleHeight = int (float height * 0.07)
         let subTitleWidth = int (float width * 0.75)
