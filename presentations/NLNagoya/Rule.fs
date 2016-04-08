@@ -3,6 +3,9 @@
 open Sdm2Edm
 open Edm
 
+open System
+open System.Text
+
 type ConvertionRule(width: int, height: int) =
   inherit Sdm2Edm.ConvertionRule()
 
@@ -20,7 +23,38 @@ type ConvertionRule(width: int, height: int) =
     let fontSize = 0.364 * (float boxHeight) |> int |> float
     // TODO : はみ出るようならboxWidthを基準にフォントサイズを決定
     data
-    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize fontSize |> Font.updateName "Yu Gothic" })
+    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize fontSize |> Font.updateName "メイリオ" })
+
+  let updateTitlePageFont data =
+    data
+    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateName "Yu Gothic" })
+
+  let highlightUpper data =
+    let splitAndToRed (seg: RichTextSegment) =
+      let str = seg.Value
+      let mutable isUpper = Char.IsUpper(str.[0])
+      let buf = StringBuilder()
+      [ for ch in str do
+          if isUpper then
+            if Char.IsUpper(ch) then
+              buf.Append(ch) |> ignore
+            else
+              yield { seg with Value = buf.ToString(); FontInfo = seg.FontInfo |> Font.updateColor (Rgb(255, 0, 0)) }
+              buf.Clear().Append(ch) |> ignore
+              isUpper <- false
+          else
+            if not (Char.IsUpper(ch)) then
+              buf.Append(ch) |> ignore
+            else
+              yield { seg with Value = buf.ToString(); FontInfo = seg.FontInfo |> Font.updateColor RgbColor.black }
+              buf.Clear().Append(ch) |> ignore
+              isUpper <- true
+        yield { seg with Value = buf.ToString()
+                         FontInfo =
+                           if isUpper then seg.FontInfo |> Font.updateColor (Rgb(255, 0, 0))
+                           else seg.FontInfo |> Font.updateColor RgbColor.black } ]
+    data
+    |> Data.editRichText (fun txt -> { txt with Segments = txt.Segments |> List.collect splitAndToRed })
 
   override __.Text(start, _groups, text) =
     [ Cell.richText (start.Start.Row, start.Start.Column) (1, 1) (RichText.createWithoutFontInfo (text |> Sdm.Text.map toEdmSegment)) ]
@@ -37,7 +71,7 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  Row = vmiddle - (titleHeight / 2); MergedRows = titleHeight
                                  Column = hmiddle - (titleWidth / 2); MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data })
+                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateTitlePageFont |> highlightUpper })
     | Sdm.Patterns.Contains Styles.subTitle ->
         let subTitleHeight = int (float height * 0.07)
         let subTitleWidth = int (float width * 0.75)
@@ -47,8 +81,8 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  MergedRows = subTitleHeight
                                  MergedColumns = subTitleWidth
-                                 Data = fit (subTitleWidthPx, subTitleHeightPx) cell.Data })
-    | Styles.Heading.Speaker ->
+                                 Data = fit (subTitleWidthPx, subTitleHeightPx) cell.Data |> updateTitlePageFont })
+    | Sdm.Patterns.Contains Styles.speaker ->
         let speakerHeight = int (float height * 0.06)
         let speakerWidth = int (float width * 0.2)
         let speakerHeightPx = speakerHeight * heightUnit
@@ -59,8 +93,8 @@ type ConvertionRule(width: int, height: int) =
                                  Row = offset
                                  MergedRows = speakerHeight
                                  MergedColumns = speakerWidth
-                                 Data = fit (speakerWidthPx, speakerHeightPx) cell.Data })
-    | Styles.Heading.Date ->
+                                 Data = fit (speakerWidthPx, speakerHeightPx) cell.Data |> updateTitlePageFont })
+    | Sdm.Patterns.Contains Styles.date ->
         let dateHeight = int (float height * 0.06)
         let dateWidth = int (float width * 0.2)
         let dateHeightPx = dateHeight * heightUnit
@@ -69,8 +103,8 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  MergedRows = dateHeight
                                  MergedColumns = dateWidth
-                                 Data = fit (dateWidthPx, dateHeightPx) cell.Data })
-    | Styles.Heading.Title ->
+                                 Data = fit (dateWidthPx, dateHeightPx) cell.Data |> updateTitlePageFont })
+    | Sdm.Patterns.Contains Styles.title ->
         cells
     | _ -> cells
   override __.ArroundParagraph(start, groups, cells) = cells
