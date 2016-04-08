@@ -17,7 +17,13 @@ let pages =
                        Items = [ TextListItem "id:bleis-tift / @bleis"
                                  TextListItem "株式会社オンザロード"
                                  TextListItem "F#が好き"
-                                 TextListItem "Excel方眼紙は嫌い" ] } ]
+                                 TextListItem "Excel方眼紙は嫌い" ] }
+    ListPage { Heading = "今日話すこと"
+               Items = [ TextListItem "関数型プログラミング言語を使おう！"
+                         Nested ("関数型プログラミング言語による身近な問題の解決",
+                                 [ TextListItem "あいつを倒す・・・倒したい"
+                                   TextListItem "ざっくり仕組みの説明" ])
+                         TextListItem "応用例の紹介" ] } ]
 
 [<EntryPoint>]
 let main argv =

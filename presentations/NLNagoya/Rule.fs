@@ -16,6 +16,12 @@ type ConvertionRule(width: int, height: int) =
 
   let mutable i = 0
 
+  // TODO : Sdmに移動
+  let size font =
+    match font with
+    | FontInfo font -> match font.Size with FontSize size -> size | NoFontSize -> failwith "oops!"
+    | NoFontInfo -> failwith "oops!"
+
   // TODO : Sdm2Edmに移動
   let toEdmSegment (seg: Sdm.TextSegment) =
     { RichTextSegment.Value = seg.Value; FontInfo = Font.noSpecific }
@@ -30,6 +36,10 @@ type ConvertionRule(width: int, height: int) =
   let updateTitlePageFont data =
     data
     |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateName "Yu Gothic" })
+
+  let updateHeadingFont data =
+    data
+    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateStyle BoldStyle })
 
   let highlightUpper data =
     let splitAndToRed (seg: RichTextSegment) =
@@ -117,7 +127,7 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  Row = vOffset; MergedRows = titleHeight
                                  Column = hOffset; MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data })
+                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
     | _ -> cells
   override __.ArroundParagraph(start, groups, cells) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
@@ -131,10 +141,11 @@ type ConvertionRule(width: int, height: int) =
     let w = int (float width * 0.9)
     let hPx = h * heightUnit
     let wPx = w * widthUnit
-    cells |> List.map (fun cell ->
-                         { cell with
-                             MergedRows = h
-                             Data = fit (wPx, hPx) cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs)  })
+    cells |> List.mapi (fun i cell ->
+                          { cell with
+                              Row = cell.Row + (if i <> 0 then h - 1 else 0); MergedRows = h
+                              Data = if i <> 0 then cell.Data |> RichText.edit (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize (size txt.FontInfo * 0.9) })
+                                     else fit (wPx, hPx) cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs)  })
   override __.ArroundList(start, groups, cells) =
     let hOffset = int (float width / 25.0)
     let h = int (float height * 0.1)
