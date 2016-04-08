@@ -39,7 +39,7 @@ type ConvertionRule(width: int, height: int) =
 
   let updateHeadingFont data =
     data
-    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateStyle BoldStyle })
+    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.editFontInfoData (fun f -> { f with Style = BoldStyle; Underline = Some Underline }) })
 
   let highlightUpper data =
     let splitAndToRed (seg: RichTextSegment) =
@@ -126,6 +126,17 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  Row = vOffset; MergedRows = titleHeight
+                                 Column = hOffset; MergedColumns = titleWidth
+                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
+    | Sdm.Patterns.Contains Styles.sectionName ->
+        let hOffset = int (float width / 25.0)
+        let titleHeight = int (float height * 0.12)
+        let titleWidth = int (float width * 0.9)
+        let titleHeightPx = titleHeight * heightUnit
+        let titleWidthPx = titleWidth * widthUnit
+        cells |> List.map (fun cell ->
+                             { cell with
+                                 Row = height / 2 - (titleHeight / 2); MergedRows = titleHeight
                                  Column = hOffset; MergedColumns = titleWidth
                                  Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
     | _ -> cells

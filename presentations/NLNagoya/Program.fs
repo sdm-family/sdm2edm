@@ -23,7 +23,10 @@ let pages =
                          Nested ("関数型プログラミング言語による身近な問題の解決",
                                  [ TextListItem "あいつを倒す・・・倒したい"
                                    TextListItem "ざっくり仕組みの説明" ])
-                         TextListItem "応用例の紹介" ] } ]
+                         TextListItem "応用例の紹介" ] }
+    SectionPage { SectionName = "関数型プログラミング言語を使おう！" }
+    SectionPage { SectionName = "関数プログラミング言語による身近な問題の解決" }
+    SectionPage { SectionName = "応用例の紹介" } ]
 
 [<EntryPoint>]
 let main argv =

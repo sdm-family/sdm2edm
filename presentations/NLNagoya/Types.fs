@@ -22,8 +22,12 @@ type ImageAndListPage =
     ImagePath: string
     Items: ListItem list }
 
+type SectionPage =
+  { SectionName: string }
+
 type PresentationPage =
   | TitlePage of TitlePage
+  | SectionPage of SectionPage
   | ListPage of ListPage
   | ImageAndListPage of ImageAndListPage
 
@@ -35,6 +39,10 @@ module PresentationPage =
                      Heading ([Styles.subTitle], 2, Text.create [TextSegment.fromString st])
                      Heading ([Styles.speaker], 3, Text.create [TextSegment.fromString s])
                      Heading ([Styles.date], 3, Text.create [TextSegment.fromString (d.ToString("yyyy年MM月dd日"))]) ] }
+
+  let private sectionPageToSdm { SectionName = n } no =
+    { Name = string no
+      Components = [ Heading ([Styles.sectionName], 1, Text.create [TextSegment.fromString n]) ] }
 
   let rec private listItemToSdm = function
   | TextListItem item -> [Paragraph ([Styles.listItem], [Text.create [TextSegment.fromString item]])]
@@ -54,6 +62,7 @@ module PresentationPage =
 
   let private toSdmImpl i = function
   | TitlePage titlePage -> titlePageToSdm titlePage i
+  | SectionPage sectionPage -> sectionPageToSdm sectionPage i
   | ListPage listPage -> listPageToSdm listPage i
   | ImageAndListPage imgAndListPage -> imageAndListPageToSdm imgAndListPage i
 

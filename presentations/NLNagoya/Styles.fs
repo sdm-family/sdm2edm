@@ -11,6 +11,8 @@ module Styles =
 
   let title = TextStyleGroup("Title")
 
+  let sectionName = TextStyleGroup("SectionName")
+
   // paragraph styles
   let image path = TextStyleGroup("Image" + path)
 
