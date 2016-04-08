@@ -33,6 +33,7 @@ let rule = { new ConvertionRule() with
                override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
                override __.ArroundTableRow(start, headerRange, groups, cells) = cells
                override __.ArroundTable(start, groups, cells) = cells
+               override __.Drawing(_) = []
            }
 
 let ``convertPageでAddressが計算できる`` = test {
@@ -124,6 +125,7 @@ let rule2 = { new ConvertionRule() with
                 override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
                 override __.ArroundTableRow(start, headerRange, groups, cells) = cells
                 override __.ArroundTable(start, groups, cells) = cells
+                override __.Drawing(_) = []
             }
 
 let rowsTable cols = Table ([], RowsTable ([], cols))

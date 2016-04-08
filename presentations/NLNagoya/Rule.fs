@@ -12,6 +12,8 @@ type ConvertionRule(width: int, height: int) =
   let heightUnit = 22<pixel>
   let widthUnit = 20<pixel>
 
+  let imageRow = System.Collections.Generic.Dictionary<_, _>()
+
   let mutable i = 0
 
   // TODO : Sdm2Edmに移動
@@ -105,15 +107,52 @@ type ConvertionRule(width: int, height: int) =
                                  MergedColumns = dateWidth
                                  Data = fit (dateWidthPx, dateHeightPx) cell.Data |> updateTitlePageFont })
     | Sdm.Patterns.Contains Styles.title ->
-        cells
+        let vOffset = int (float height / 20.0)
+        let hOffset = int (float width / 25.0)
+        let titleHeight = int (float height * 0.12)
+        let titleWidth = int (float width * 0.9)
+        let titleHeightPx = titleHeight * heightUnit
+        let titleWidthPx = titleWidth * widthUnit
+        cells |> List.map (fun cell ->
+                             { cell with
+                                 Row = vOffset; MergedRows = titleHeight
+                                 Column = hOffset; MergedColumns = titleWidth
+                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data })
     | _ -> cells
-  override __.ArroundParagraph(start, groups, cells) = cells
-  override __.ArroundListItem(start, groups, cells) = cells
-  override __.ArroundList(start, groups, cells) = cells 
+  override __.ArroundParagraph(start, groups, cells) =
+    match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
+    | Sdm.Patterns.ContainsPrefix "Image" path ->
+        let row = int (float height / 20.0 * 9.0)
+        imageRow.[path] <- start.Start.Row
+        [ Cell.create (row, 1) (1, 1) Format.defaultTextFormat (Other "") ]
+    | _ -> cells
+  override __.ArroundListItem(start, groups, cells) =
+    let h = int (float height * 0.1)
+    let w = int (float width * 0.9)
+    let hPx = h * heightUnit
+    let wPx = w * widthUnit
+    cells |> List.map (fun cell ->
+                         { cell with
+                             MergedRows = h
+                             Data = fit (wPx, hPx) cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs)  })
+  override __.ArroundList(start, groups, cells) =
+    let hOffset = int (float width / 25.0)
+    let h = int (float height * 0.1)
+    let w = int (float width * 0.9)
+    cells |> List.map (fun cell ->
+                         { cell with
+                             Column = hOffset + cell.Column; MergedColumns = (w - cell.Column) })
   override __.ArroundTableCell(start, groups, cells) = cells
   override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
   override __.ArroundTableRow(start, headerRange, groups, cells) = cells
   override __.ArroundTable(start, groups, cells) = cells
+  override __.Drawing(groups) =
+    match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
+    | Sdm.Patterns.ContainsPrefix "Image" path ->
+        // TODO : pixelの部分をちゃんと計算する
+        [ Image.createFromPath path (System.IO.FileInfo(path)) (RowColAndOffsetPixcel ({ Address = imageRow.[path]; Offset = 10<pixel> }, { Address = width / 2; Offset = -100<pixel> }))
+          |> Drawing.updateSize (Percent 150) ]
+    | _ -> []
 
   member __.AddKotori(sheet) =
     // TODO : 色々まじめに計算する
@@ -123,7 +162,8 @@ type ConvertionRule(width: int, height: int) =
 
     let rowAndOffset = { Address = height; Offset = -(originHeight / div / 3) * 1<pixel> }
     let colAndOffset = { Address = width; Offset = -(originWidth / div / 3) * 1<pixel> }
+    let kotori =
+      Image.createFromPath (i <- i + 1; string i) (System.IO.FileInfo("mini.png")) (Position.RowColAndOffsetPixcel (rowAndOffset, colAndOffset))
+      |> Drawing.updateSize (Percent (100 / div))
     { sheet with
-        Drawings =
-          [ Image.cerateFromPath (i <- i + 1; string i) (System.IO.FileInfo("mini.png")) (Position.RowColAndOffsetPixcel (rowAndOffset, colAndOffset))
-            |> Drawing.updateSize (Percent (100 / div)) ] }
+        Drawings = kotori::sheet.Drawings }

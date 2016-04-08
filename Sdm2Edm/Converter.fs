@@ -71,7 +71,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
                          Some (converted, (next, xs))
                      | _ -> None)
       |> List.concat
-    let range = Cells.calcRange cells
+    let range = if cells.IsEmpty then start else Cells.calcRange cells
     rule.ArroundParagraph(range, groups, cells)
 | List (groups, items) ->
     let cells =
@@ -190,19 +190,38 @@ and convertCell (rule: ConvertionRule) (start: ComponentRange) (groups: CellStyl
   let own = Cells.calcRange converted
   rule.ArroundTableCell(own, groups, converted)
 
+let rec toDrawings (rule: ConvertionRule) = function
+| Heading _ -> []
+| Paragraph (groups, []) -> rule.Drawing(groups) // linesが空のParagraphはDrawingになりうる
+| Paragraph _ -> []
+| List (_, items) -> items |> List.collect (fun item -> item |> List.collect (toDrawings rule))
+| Table (_, RowsTable (_, rows)) -> rows |> List.collect (rowToDrawings rule)
+| Table (_, ColumnsTable (_, cols)) -> cols |> List.collect (colToDrawings rule)
+and rowToDrawings rule (row: ColumnContents) =
+  [ match row.Heading with
+    | Some heading -> yield! heading.Content |> List.collect (toDrawings rule)
+    | None -> ()
+    yield! row.Rows |> List.collect (fun (_, cmp) -> cmp |> List.collect (toDrawings rule)) ]
+and colToDrawings rule (col: RowContents) =
+  [ match col.Heading with
+    | Some heading -> yield! heading.Content |> List.collect (toDrawings rule)
+    | None -> ()
+    yield! col.Columns |> List.collect (fun (_, cmp) -> cmp |> List.collect (toDrawings rule)) ]
+
 let convertPage (rule: ConvertionRule) (page: Page) : Sheet =
   let cells =
     (ComponentRange.A1, page.Components)
     |> Seq.unfold (function
                    | start, x::xs ->
                        let converted = convertComponent rule start x
-                       let range = Cells.calcRange converted
+                       let range = if converted.IsEmpty then start else Cells.calcRange converted
                        let next = ComponentRange.nextComponentStart range
                        Some (converted, (next, xs))
                    | _ -> None)
     |> List.concat
+  let drawings = page.Components |> List.collect (toDrawings rule)
 
-  { Sheet.Name = page.Name; Cells = cells; Drawings = [] }
+  { Sheet.Name = page.Name; Cells = cells; Drawings = drawings }
 
 let convert (rule: ConvertionRule) (pages: Page list) : Sheet list =
   pages |> List.map (convertPage rule)

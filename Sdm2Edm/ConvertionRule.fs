@@ -76,3 +76,6 @@ type ConvertionRule () =
 
   /// テーブル全体の変換規則です。
   abstract ArroundTable: start:ComponentRange * groups:TableStyleGroup list * cells:Cell list -> ConvertedResult
+
+  /// Drawingへの変換規則です。
+  abstract Drawing: groups:TextStyleGroup list -> Drawing list

@@ -11,11 +11,9 @@ module Styles =
 
   let title = TextStyleGroup("Title")
 
-  let private check x xs = if xs |> List.contains x then Some () else None
+  // paragraph styles
+  let image path = TextStyleGroup("Image" + path)
 
-  module Heading =
-    let (|MainTitle|_|) groups = check mainTitle groups
-    let (|SubTitle|_|) groups = check subTitle groups
-    let (|Speaker|_|) groups = check speaker groups
-    let (|Date|_|) groups = check date groups
-    let (|Title|_|) groups = check title groups
+  // list styles
+  let unorderedList = ListStyleGroup("UnorderedList")
+  let listItem = TextStyleGroup("ListItem")
