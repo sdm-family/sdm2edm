@@ -78,7 +78,13 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
       (start, items)
       |> Seq.unfold (function
                      | start, x::xs ->
-                         let converted = x |> List.collect (convertComponent rule start)
+                         let converted =
+                           x
+                           |> Seq.mapi (fun i x -> (x, i))
+                           |> Seq.collect (function
+                                           | (cmp, 1) -> convertComponent rule start cmp |> Cells.moveDown 1 |> fst |> Cells.moveRight 1 |> fst
+                                           | (cmp, _) -> convertComponent rule start cmp)
+                           |> Seq.toList
                          let own = Cells.calcRange converted
                          let converted = rule.ArroundListItem(own, groups, converted)
                          let next = Cells.calcRange converted |> ComponentRange.nextComponentStart
