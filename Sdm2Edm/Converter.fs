@@ -91,7 +91,7 @@ let rec convertComponent (rule: ConvertionRule) (start: ComponentRange) = functi
                          Some (converted, (next, xs))
                       | _ -> None)
       |> List.concat
-    let range = Cells.calcRange cells
+    let range = if cells.IsEmpty then start else Cells.calcRange cells
     rule.ArroundList(range, groups, cells)
 | Table (groups, contents) ->
     checkTableSize contents

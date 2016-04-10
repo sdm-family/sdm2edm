@@ -73,11 +73,11 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Edm">
-      <HintPath>..\..\packages\Edm.2.2.0.0\lib\net46\Edm.dll</HintPath>
+      <HintPath>..\..\packages\Edm.2.3.0.0\lib\net46\Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Edm.Writer.EPPlus">
-      <HintPath>..\..\packages\Edm.Writer.EPPlus.2.2.0.0\lib\net46\Edm.Writer.EPPlus.dll</HintPath>
+      <HintPath>..\..\packages\Edm.Writer.EPPlus.2.3.0.0\lib\net46\Edm.Writer.EPPlus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="EPPlus">

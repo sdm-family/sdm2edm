@@ -4,8 +4,8 @@ open Edm.Writer.EPPlus
 open NLNagoya
 open System
 
-let width = 79
-let height = 36
+let width = 74
+let height = 37
 
 let pages =
   [ yield TitlePage { MainTitle = "No more Legacy documents"
@@ -29,7 +29,7 @@ let pages =
     yield SectionPage { SectionName = "関数型プログラミング言語を使おう！" }
 
     yield SectionPage { SectionName = "関数プログラミング言語による身近な問題の解決" }
-    for i in 1..3 do
+    for i in 0..3 do
       yield ListPage { Heading = "身近な問題の例"
                        Items = List.init i (fun _ -> TextListItem "Excel方眼紙") }
     yield ListPage { Heading = "ニッポンの素敵なExcel方眼紙"
@@ -54,10 +54,15 @@ let main argv =
     |> List.mapi (fun i x -> if i = 1 then x else rule.AddKotori(x))
 
   // Let's 方眼紙!!!(ライブラリがやってくれる)
-  let settings = { ShowGuideLines = Some false
-                   LongEdge = Some LEWidth
-                   PrintArea = Some { StartRow = 0; StartColumn = 0; EndRow = height; EndColumn = width }
-                   Fit = Some FitToPage }
-  let writer = EPPlusWriter.createWithSettings settings ("NL名古屋.xlsx", "template.xlsx")
+  let bookSettings =
+    { ShowHorizontalScrollBar = Some false
+      ShowVerticalScrollBar = Some false
+      ShowSheetTabs = Some false }
+  let sheetSettings =
+    { ShowGuideLines = Some false
+      LongEdge = Some LEWidth
+      PrintArea = Some { StartRow = 0; StartColumn = 0; EndRow = height; EndColumn = width }
+      Fit = Some FitToPage }
+  let writer = EPPlusWriter.createWithSettings (bookSettings, sheetSettings) ("NL名古屋.xlsx", "template.xlsx")
   writer.Write(sheets)
   0
