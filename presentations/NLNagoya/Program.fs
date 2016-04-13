@@ -41,6 +41,17 @@ let pages =
     yield ListPage { Heading = "まとめ"
                      Items = [ TextListItem "TODO" ] } ]
 
+// プレゼン用の設定
+let bookSettings =
+  { ShowHorizontalScrollBar = Some false
+    ShowVerticalScrollBar = Some false
+    ShowSheetTabs = Some false }
+let sheetSettings =
+  { ShowGuideLines = Some false
+    LongEdge = Some LEWidth
+    PrintArea = Some { StartRow = 0; StartColumn = 0; EndRow = height; EndColumn = width }
+    Fit = Some FitToPage }
+
 [<EntryPoint>]
 let main argv =
   // SDMに変換(自分で用意)
@@ -54,15 +65,6 @@ let main argv =
     |> List.mapi (fun i x -> if i = 1 then x else rule.AddKotori(x))
 
   // Let's 方眼紙!!!(ライブラリがやってくれる)
-  let bookSettings =
-    { ShowHorizontalScrollBar = Some false
-      ShowVerticalScrollBar = Some false
-      ShowSheetTabs = Some false }
-  let sheetSettings =
-    { ShowGuideLines = Some false
-      LongEdge = Some LEWidth
-      PrintArea = Some { StartRow = 0; StartColumn = 0; EndRow = height; EndColumn = width }
-      Fit = Some FitToPage }
   let writer = EPPlusWriter.createWithSettings (bookSettings, sheetSettings) ("NL名古屋.xlsx", "template.xlsx")
   writer.Write(sheets)
   0

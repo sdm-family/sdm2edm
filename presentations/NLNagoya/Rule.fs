@@ -12,7 +12,7 @@ type ConvertionRule(width: int, height: int) =
   let heightUnit = 22<pixel>
   let widthUnit = 20<pixel>
 
-  let imageRow = System.Collections.Generic.Dictionary<_, _>()
+  let drawingRow = System.Collections.Generic.Dictionary<_, _>()
 
   let mutable i = 0
 
@@ -148,7 +148,11 @@ type ConvertionRule(width: int, height: int) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->
         let row = int (float height / 20.0 * 9.0)
-        imageRow.[path] <- start.Start.Row
+        drawingRow.[path] <- start.Start.Row
+        [ Cell.create (row, 1) (1, 1) Format.defaultTextFormat (Other "") ]
+    | Sdm.Patterns.ContainsPrefix "Shape" description ->
+        let row = int (float height / 20.0 * 9.0)
+        drawingRow.[description] <- start.Start.Row
         [ Cell.create (row, 1) (1, 1) Format.defaultTextFormat (Other "") ]
     | _ -> cells
   override __.ArroundListItem(start, groups, cells) =
@@ -176,8 +180,13 @@ type ConvertionRule(width: int, height: int) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->
         // TODO : pixelの部分をちゃんと計算する
-        [ Image.createFromPath path (System.IO.FileInfo(path)) (RowColAndOffsetPixcel ({ Address = imageRow.[path]; Offset = 10<pixel> }, { Address = width / 2; Offset = -100<pixel> }))
+        [ Image.createFromPath path (System.IO.FileInfo(path)) (RowColAndOffsetPixcel ({ Address = drawingRow.[path]; Offset = 10<pixel> }, { Address = width / 2; Offset = -100<pixel> }))
           |> Drawing.updateSize (Percent 150) ]
+    | Sdm.Patterns.ContainsPrefix "Shape" description ->
+        let hOffset = int (float width / 25.0)
+        let row = { Address = drawingRow.[description]; Offset = 0<pixel> }
+        let col = { Address = hOffset; Offset = 0<pixel> }
+        Shapes.shape (RowColAndOffsetPixcel (row, col)) description
     | _ -> []
 
   member __.AddKotori(sheet) =

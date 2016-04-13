@@ -19,3 +19,6 @@ module Styles =
   // list styles
   let unorderedList = ListStyleGroup("UnorderedList")
   let listItem = TextStyleGroup("ListItem")
+
+  // shape styles
+  let shape description = TextStyleGroup("Shape" + description)

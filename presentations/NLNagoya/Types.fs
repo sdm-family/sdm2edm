@@ -25,11 +25,16 @@ type ImageAndListPage =
 type SectionPage =
   { SectionName: string }
 
+type ShapePage =
+  { Heading: string
+    ShapeDescription: string }
+
 type PresentationPage =
   | TitlePage of TitlePage
   | SectionPage of SectionPage
   | ListPage of ListPage
   | ImageAndListPage of ImageAndListPage
+  | ShapePage of ShapePage
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module PresentationPage =
@@ -60,10 +65,16 @@ module PresentationPage =
                      Paragraph ([Styles.image p], [])
                      List ([Styles.unorderedList], items |> List.map listItemToSdm) ] }
 
+  let private shapePageToSdm { ShapePage.Heading = h; ShapeDescription = sd } no =
+    { Name = string no
+      Components = [ Heading ([Styles.title], 1, Text.create [TextSegment.fromString h])
+                     Paragraph ([Styles.shape sd], []) ] }
+
   let private toSdmImpl i = function
   | TitlePage titlePage -> titlePageToSdm titlePage i
   | SectionPage sectionPage -> sectionPageToSdm sectionPage i
   | ListPage listPage -> listPageToSdm listPage i
   | ImageAndListPage imgAndListPage -> imageAndListPageToSdm imgAndListPage i
+  | ShapePage shapePage -> shapePageToSdm shapePage i
 
   let toSdm pages = pages |> List.mapi toSdmImpl
