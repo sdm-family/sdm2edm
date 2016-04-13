@@ -22,3 +22,6 @@ module Styles =
 
   // shape styles
   let shape description = TextStyleGroup("Shape" + description)
+
+  // code style
+  let fsharp = TextStyleGroup("FSharp")

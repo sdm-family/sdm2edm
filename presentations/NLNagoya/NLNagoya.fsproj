@@ -58,6 +58,7 @@
     <Compile Include="Styles.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="CodeColorizer.fs" />
     <Compile Include="Rule.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
@@ -83,6 +84,10 @@
     </Reference>
     <Reference Include="EPPlus">
       <HintPath>..\..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharp.Compiler.Service">
+      <HintPath>..\..\packages\FSharp.Compiler.Service.3.0.0.0\lib\net45\FSharp.Compiler.Service.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

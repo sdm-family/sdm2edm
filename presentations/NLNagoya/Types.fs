@@ -29,12 +29,17 @@ type ShapePage =
   { Heading: string
     ShapeDescription: string }
 
+type CodePage =
+  { Heading: string
+    Code: string }
+
 type PresentationPage =
   | TitlePage of TitlePage
   | SectionPage of SectionPage
   | ListPage of ListPage
   | ImageAndListPage of ImageAndListPage
   | ShapePage of ShapePage
+  | CodePage of CodePage
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module PresentationPage =
@@ -70,11 +75,17 @@ module PresentationPage =
       Components = [ Heading ([Styles.title], 1, Text.create [TextSegment.fromString h])
                      Paragraph ([Styles.shape sd], []) ] }
 
+  let private codePageToSdm { CodePage.Heading = h; Code = c } no =
+    { Name = string no
+      Components = [ Heading ([Styles.title], 1, Text.create [TextSegment.fromString h])
+                     Paragraph ([Styles.fsharp], [ Text.create [TextSegment.fromString c] ]) ] }
+
   let private toSdmImpl i = function
   | TitlePage titlePage -> titlePageToSdm titlePage i
   | SectionPage sectionPage -> sectionPageToSdm sectionPage i
   | ListPage listPage -> listPageToSdm listPage i
   | ImageAndListPage imgAndListPage -> imageAndListPageToSdm imgAndListPage i
   | ShapePage shapePage -> shapePageToSdm shapePage i
+  | CodePage codePage -> codePageToSdm codePage i
 
   let toSdm pages = pages |> List.mapi toSdmImpl

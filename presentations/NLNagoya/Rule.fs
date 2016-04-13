@@ -145,6 +145,7 @@ type ConvertionRule(width: int, height: int) =
                                  Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
     | _ -> cells
   override __.ArroundParagraph(start, groups, cells) =
+    let fs = Styles.fsharp :> Sdm.StyleGroup
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->
         let row = int (float height / 20.0 * 9.0)
@@ -154,6 +155,18 @@ type ConvertionRule(width: int, height: int) =
         let row = int (float height / 20.0 * 9.0)
         drawingRow.[description] <- start.Start.Row
         [ Cell.create (row, 1) (1, 1) Format.defaultTextFormat (Other "") ]
+    | Sdm.Patterns.Contains fs ->
+        let w = int (float width * 0.9)
+        cells
+        |> List.map CodeColorizer.color
+        |> List.map (fun cell ->
+                       let rows = height - cell.Row
+                       let size = float rows / 2.0
+                       let format = { cell.Format with Layout = { cell.Format.Layout with VerticalLayout = VLSup WrapText } }
+                       { cell with
+                           MergedRows = rows; MergedColumns = (w - cell.Column)
+                           Format = format
+                           Data = cell.Data |> RichText.edit (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize size}) })
     | _ -> cells
   override __.ArroundListItem(start, groups, cells) =
     let h = int (float height * 0.1)
