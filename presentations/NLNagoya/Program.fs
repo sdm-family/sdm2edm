@@ -48,6 +48,8 @@ let bookSettings =
     ShowSheetTabs = Some false }
 let sheetSettings =
   { ShowGuideLines = Some false
+    ShowHeaders = Some false
+    ZoomScale = Some 100<Edm.pixel>
     LongEdge = Some LEWidth
     PrintArea = Some { StartRow = 0; StartColumn = 0; EndRow = height; EndColumn = width }
     Fit = Some FitToPage }

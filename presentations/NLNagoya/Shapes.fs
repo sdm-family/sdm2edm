@@ -23,11 +23,11 @@ module Shapes =
     { stext with Text = txt }
 
   let private moveDown = function
-  | RowColAndOffsetPixcel (row, col) -> RowColAndOffsetPixcel ({ row with Address = row.Address + 3 }, col)
+  | RowColAndOffsetPixel (row, col) -> RowColAndOffsetPixel ({ row with Address = row.Address + 3 }, col)
   | _other -> failwith "oops!"
 
   let private moveRight = function
-  | RowColAndOffsetPixcel (row, col) -> RowColAndOffsetPixcel (row, { col with Address = col.Address + 5 })
+  | RowColAndOffsetPixel (row, col) -> RowColAndOffsetPixel (row, { col with Address = col.Address + 5 })
   | _other -> failwith "oops!"
 
   let private appN n f x =

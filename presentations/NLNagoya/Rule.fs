@@ -183,13 +183,13 @@ type ConvertionRule(width: int, height: int) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->
         // TODO : pixelの部分をちゃんと計算する
-        [ Image.createFromPath path (System.IO.FileInfo(path)) (RowColAndOffsetPixcel ({ Address = drawingRow.[path]; Offset = 10<pixel> }, { Address = width / 2; Offset = -100<pixel> }))
+        [ Image.createFromPath path (System.IO.FileInfo(path)) (RowColAndOffsetPixel ({ Address = drawingRow.[path]; Offset = 10<pixel> }, { Address = width / 2; Offset = -100<pixel> }))
           |> Drawing.updateSize (Percent 150) ]
     | Sdm.Patterns.ContainsPrefix "Shape" description ->
         let hOffset = int (float width / 25.0)
         let row = { Address = drawingRow.[description]; Offset = 0<pixel> }
         let col = { Address = hOffset; Offset = 0<pixel> }
-        Shapes.shape (RowColAndOffsetPixcel (row, col)) description
+        Shapes.shape (RowColAndOffsetPixel (row, col)) description
     | _ -> []
 
   member __.AddKotori(sheet) =
@@ -201,7 +201,7 @@ type ConvertionRule(width: int, height: int) =
     let rowAndOffset = { Address = height; Offset = -(originHeight / div / 3) * 1<pixel> }
     let colAndOffset = { Address = width; Offset = -(originWidth / div / 3) * 1<pixel> }
     let kotori =
-      Image.createFromPath (i <- i + 1; string i) (System.IO.FileInfo("mini.png")) (Position.RowColAndOffsetPixcel (rowAndOffset, colAndOffset))
+      Image.createFromPath (i <- i + 1; string i) (System.IO.FileInfo("mini.png")) (Position.RowColAndOffsetPixel (rowAndOffset, colAndOffset))
       |> Drawing.updateSize (Percent (100 / div))
     { sheet with
         Drawings = kotori::sheet.Drawings }
