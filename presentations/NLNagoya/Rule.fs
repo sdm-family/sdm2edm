@@ -16,26 +16,22 @@ type ConvertionRule(width: int, height: int) =
 
   let mutable i = 0
 
-  // TODO : Sdmに移動
+  // TODO : Edmに移動
   let size font =
     match font with
     | FontInfo font -> match font.Size with FontSize size -> size | NoFontSize -> failwith "oops!"
     | NoFontInfo -> failwith "oops!"
 
-  let fit (boxWidth, boxHeight) data =
+  let fit (boxWidth, boxHeight) cell =
     // boxHeightを基準にフォントサイズを決定
     let fontSize = 0.364 * (float boxHeight) |> int |> float
     // TODO : はみ出るようならboxWidthを基準にフォントサイズを決定
-    data
-    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize fontSize |> Font.updateName "メイリオ" })
+    cell
+    |> Cell.updateFontSize fontSize
+    |> Cell.updateFontName "メイリオ"
 
-  let updateTitlePageFont data =
-    data
-    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateName "Yu Gothic" })
-
-  let updateHeadingFont data =
-    data
-    |> Data.editRichText (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.editFontInfoData (fun f -> { f with Style = BoldStyle; Underline = Some Underline }) })
+  let updateTitlePageFont cell = cell |> Cell.updateFontName "Yu Gothic"
+  let updateHeadingFont cell = cell |> Cell.toBold |> Cell.withUnderline
 
   let highlightUpper data =
     let splitAndToRed (seg: RichTextSegment) =
@@ -65,8 +61,7 @@ type ConvertionRule(width: int, height: int) =
     |> Data.editRichText (fun txt -> { txt with Segments = txt.Segments |> List.collect splitAndToRed })
 
   let borderBottom (cell: Cell) =
-    { cell with Format = { cell.Format with Borders = { cell.Format.Borders with Bottom = { Style = ThickBorder; Color = Rgb (255, 0, 0) } }
-                                            Layout = { cell.Format.Layout with VerticalLayout = VLSup WrapText } } }
+    cell |> Cell.updateBottomBorder (ThickBorder, Rgb (255, 0, 0)) |> Cell.toWrapText
 
   override __.ArroundHeading(_start, groups, _level, cells) =
     match groups with
@@ -81,7 +76,11 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  Row = vmiddle - (titleHeight / 2); MergedRows = titleHeight
                                  Column = hmiddle - (titleWidth / 2); MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateTitlePageFont |> highlightUpper } |> borderBottom)
+                                 Data = highlightUpper cell.Data }
+                             |> fit (titleWidthPx, titleHeightPx)
+                             |> updateTitlePageFont
+                             |> Cell.updateVerticalLayout (VLSup WrapText)
+                             |> borderBottom)
     | Sdm.Patterns.Contains Styles.subTitle ->
         let subTitleHeight = int (float height * 0.07)
         let subTitleWidth = int (float width * 0.75)
@@ -90,8 +89,9 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  MergedRows = subTitleHeight
-                                 MergedColumns = subTitleWidth
-                                 Data = fit (subTitleWidthPx, subTitleHeightPx) cell.Data |> updateTitlePageFont })
+                                 MergedColumns = subTitleWidth }
+                             |> fit (subTitleWidthPx, subTitleHeightPx)
+                             |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.speaker ->
         let speakerHeight = int (float height * 0.06)
         let speakerWidth = int (float width * 0.2)
@@ -102,8 +102,9 @@ type ConvertionRule(width: int, height: int) =
                              { cell with
                                  Row = offset
                                  MergedRows = speakerHeight
-                                 MergedColumns = speakerWidth
-                                 Data = fit (speakerWidthPx, speakerHeightPx) cell.Data |> updateTitlePageFont })
+                                 MergedColumns = speakerWidth }
+                             |> fit (speakerWidthPx, speakerHeightPx)
+                             |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.date ->
         let dateHeight = int (float height * 0.06)
         let dateWidth = int (float width * 0.2)
@@ -112,8 +113,9 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  MergedRows = dateHeight
-                                 MergedColumns = dateWidth
-                                 Data = fit (dateWidthPx, dateHeightPx) cell.Data |> updateTitlePageFont })
+                                 MergedColumns = dateWidth }
+                             |> fit (dateWidthPx, dateHeightPx)
+                             |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.title ->
         let vOffset = int (float height / 20.0)
         let hOffset = int (float width / 25.0)
@@ -124,8 +126,9 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  Row = vOffset; MergedRows = titleHeight
-                                 Column = hOffset; MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
+                                 Column = hOffset; MergedColumns = titleWidth }
+                             |> fit (titleWidthPx, titleHeightPx)
+                             |> updateHeadingFont)
     | Sdm.Patterns.Contains Styles.sectionName ->
         let hOffset = int (float width / 25.0)
         let titleHeight = int (float height * 0.12)
@@ -135,8 +138,9 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  Row = height / 2 - (titleHeight / 2); MergedRows = titleHeight
-                                 Column = hOffset; MergedColumns = titleWidth
-                                 Data = fit (titleWidthPx, titleHeightPx) cell.Data |> updateHeadingFont })
+                                 Column = hOffset; MergedColumns = titleWidth }
+                             |> fit (titleWidthPx, titleHeightPx)
+                             |> updateHeadingFont)
     | _ -> cells
   override __.ArroundParagraph(start, groups, cells) =
     let fs = Styles.fsharp :> Sdm.StyleGroup
@@ -156,11 +160,9 @@ type ConvertionRule(width: int, height: int) =
         |> List.map (fun cell ->
                        let rows = height - cell.Row
                        let size = float rows / 2.0
-                       let format = { cell.Format with Layout = { cell.Format.Layout with VerticalLayout = VLSup WrapText } }
-                       { cell with
-                           MergedRows = rows; MergedColumns = (w - cell.Column)
-                           Format = format
-                           Data = cell.Data |> RichText.edit (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize size}) })
+                       { cell with MergedRows = rows; MergedColumns = (w - cell.Column) }
+                       |> Cell.updateFontSize size
+                       |> Cell.updateVerticalLayout (VLSup WrapText))
     | _ -> cells
   override __.ArroundListItem(start, groups, cells) =
     let h = int (float height * 0.1)
@@ -168,10 +170,11 @@ type ConvertionRule(width: int, height: int) =
     let hPx = h * heightUnit
     let wPx = w * widthUnit
     cells |> List.mapi (fun i cell ->
+                          let cell = fit (wPx, hPx) cell
                           { cell with
                               Row = cell.Row + (if i <> 0 then h - 1 else 0); MergedRows = h
                               Data = if i <> 0 then cell.Data |> RichText.edit (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize (size txt.FontInfo * 0.9) })
-                                     else fit (wPx, hPx) cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs)  })
+                                     else cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs) })
   override __.ArroundList(start, groups, cells) =
     let hOffset = int (float width / 25.0)
     let h = int (float height * 0.1)
