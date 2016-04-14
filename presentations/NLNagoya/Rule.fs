@@ -7,7 +7,7 @@ open System
 open System.Text
 
 type ConvertionRule(width: int, height: int) =
-  inherit Sdm2Edm.ConvertionRule()
+  inherit Sdm2Edm.SimpleConvertionRule()
 
   let heightUnit = 22<pixel>
   let widthUnit = 20<pixel>
@@ -21,10 +21,6 @@ type ConvertionRule(width: int, height: int) =
     match font with
     | FontInfo font -> match font.Size with FontSize size -> size | NoFontSize -> failwith "oops!"
     | NoFontInfo -> failwith "oops!"
-
-  // TODO : Sdm2Edmに移動
-  let toEdmSegment (seg: Sdm.TextSegment) =
-    { RichTextSegment.Value = seg.Value; FontInfo = Font.noSpecific }
 
   let fit (boxWidth, boxHeight) data =
     // boxHeightを基準にフォントサイズを決定
@@ -72,8 +68,6 @@ type ConvertionRule(width: int, height: int) =
     { cell with Format = { cell.Format with Borders = { cell.Format.Borders with Bottom = { Style = ThickBorder; Color = Rgb (255, 0, 0) } }
                                             Layout = { cell.Format.Layout with VerticalLayout = VLSup WrapText } } }
 
-  override __.Text(start, _groups, text) =
-    [ Cell.richText (start.Start.Row, start.Start.Column) (1, 1) (RichText.createWithoutFontInfo (text |> Sdm.Text.map toEdmSegment)) ]
   override __.ArroundHeading(_start, groups, _level, cells) =
     match groups with
     | Sdm.Patterns.Contains Styles.mainTitle ->
@@ -185,10 +179,6 @@ type ConvertionRule(width: int, height: int) =
     cells |> List.map (fun cell ->
                          { cell with
                              Column = hOffset + cell.Column; MergedColumns = (w - cell.Column) })
-  override __.ArroundTableCell(start, groups, cells) = cells
-  override __.ArroundTableColumn(start, headerRange, groups, cells) = cells
-  override __.ArroundTableRow(start, headerRange, groups, cells) = cells
-  override __.ArroundTable(start, groups, cells) = cells
   override __.Drawing(groups) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->

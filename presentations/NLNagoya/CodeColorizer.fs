@@ -37,7 +37,7 @@ module CodeColorizer =
         yield (str, tok.ColorClass) ]
 
   let private toSegment (str, colorClass) =
-    let font color = Font.create (FontName "メイリオ") (NoFontSize) NoFontStyle color
+    let font color = Font.create (FontName "MeiryoKe_Console") (NoFontSize) NoFontStyle color
     { RichTextSegment.Value = str
       FontInfo =
         match colorClass with
