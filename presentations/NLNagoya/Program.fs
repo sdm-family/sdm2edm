@@ -64,6 +64,15 @@ let pages =
                                        [ TextListItem "Webの人はごめんなさい" ])
                                TextListItem "表計算ではなくレイアウトツールとしてのExcel"
                                TextListItem "倒したい" ] }
+    yield ListPage { Heading = "Excel方眼紙の何が悪いか"
+                     Items = [ TextListItem "バージョン管理が面倒"
+                               TextListItem "差分が見れない"
+                               TextListItem "編集が面倒" ] }
+    yield ListPage { Heading = "Excel方眼紙の何が悪いか"
+                     Items = [ TextListItem "バージョン管理が面倒"
+                               TextListItem "差分が見れない"
+                               TextListItem "編集が面倒"
+                               TextListItem "Esc押すと入力したものが消える" ] }
     yield ListPage { Heading = "Excel方眼紙を倒す前提"
                      Items = [ Nested ("Excel方眼紙は最終出力と割り切る",
                                        [ TextListItem "生成されたファイルを弄ってはいけない"
@@ -158,10 +167,12 @@ type IConvertionRule =
     yield SectionPage { SectionName = "まとめ" }
     yield ListPage { Heading = "まとめ"
                      Items = [ TextListItem "関数型プログラミング言語は実用的！"
-                               TextListItem "身のまわりのExcel方眼紙を倒していこう！" ] }
+                               TextListItem "身のまわりのExcel方眼紙を倒していこう！"
+                               TextListItem "テキスト等からExcel方眼紙を生成！" ] }
     yield ListPage { Heading = "まとめ"
                      Items = [ TextListItem "関数型プログラミング言語は実用的！"
                                TextListItem "身のまわりのExcel方眼紙を倒していこう！"
+                               TextListItem "テキスト等からExcel方眼紙を生成！"
                                TextListItem "Excelはプレゼンソフトじゃない！" ] } ]
 
 // プレゼン用の設定
