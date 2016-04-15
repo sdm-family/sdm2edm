@@ -6,6 +6,14 @@ open Edm
 open System
 open System.Text
 
+module private Impl =
+  open System.Windows.Forms
+  open System.Drawing
+
+  let measureText (fontName: string, fontSize: float) text =
+    use font = new Font(fontName, float32 fontSize)
+    (TextRenderer.MeasureText(text, font).Width |> float) * 1.0<pixel>
+
 type ConvertionRule(width: int, height: int) =
   inherit Sdm2Edm.SimpleConvertionRule()
 
@@ -22,13 +30,24 @@ type ConvertionRule(width: int, height: int) =
     | FontInfo font -> match font.Size with FontSize size -> size | NoFontSize -> failwith "oops!"
     | NoFontInfo -> failwith "oops!"
 
-  let fit (boxWidth, boxHeight) cell =
+  let cellText (cell: Cell) =
+    match cell.Data with
+    | RichText txt -> txt.Segments |> List.map (fun seg -> seg.Value) |> String.concat ""
+    | RichNumber num -> string num.Value
+    | Formula str -> str
+    | Other x -> string x
+
+  let fit (boxWidth, boxHeight) lineHeight cell =
     // boxHeightを基準にフォントサイズを決定
     let fontSize = 0.364 * (float boxHeight) |> int |> float
-    // TODO : はみ出るようならboxWidthを基準にフォントサイズを決定
-    cell
-    |> Cell.updateFontSize fontSize
-    |> Cell.updateFontName "メイリオ"
+    // はみ出るようなら行連結
+    let textWidth = Impl.measureText ("メイリオ", fontSize) (cellText cell)
+    let lines = textWidth / (float boxWidth * 1.0<pixel>) |> ceil |> int
+    let res =
+      { cell with MergedRows = lines * lineHeight }
+      |> Cell.updateFontSize fontSize
+      |> Cell.updateFontName "メイリオ"
+    if lines <> 1 then res |> Cell.toWrapText else res
 
   let updateTitlePageFont cell = cell |> Cell.updateFontName "Yu Gothic"
   let updateHeadingFont cell = cell |> Cell.toBold |> Cell.withUnderline
@@ -74,10 +93,10 @@ type ConvertionRule(width: int, height: int) =
         let titleWidthPx = titleWidth * widthUnit
         cells |> List.map (fun cell ->
                              { cell with
-                                 Row = vmiddle - (titleHeight / 2); MergedRows = titleHeight
+                                 Row = vmiddle - (titleHeight / 2)
                                  Column = hmiddle - (titleWidth / 2); MergedColumns = titleWidth
                                  Data = highlightUpper cell.Data }
-                             |> fit (titleWidthPx, titleHeightPx)
+                             |> fit (titleWidthPx, titleHeightPx) titleHeight
                              |> updateTitlePageFont
                              |> Cell.updateVerticalLayout (VLSup WrapText)
                              |> borderBottom)
@@ -87,10 +106,8 @@ type ConvertionRule(width: int, height: int) =
         let subTitleHeightPx = subTitleHeight * heightUnit
         let subTitleWidthPx = subTitleWidth * widthUnit
         cells |> List.map (fun cell ->
-                             { cell with
-                                 MergedRows = subTitleHeight
-                                 MergedColumns = subTitleWidth }
-                             |> fit (subTitleWidthPx, subTitleHeightPx)
+                             { cell with MergedColumns = subTitleWidth }
+                             |> fit (subTitleWidthPx, subTitleHeightPx) subTitleHeight
                              |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.speaker ->
         let speakerHeight = int (float height * 0.06)
@@ -101,9 +118,8 @@ type ConvertionRule(width: int, height: int) =
         cells |> List.map (fun cell ->
                              { cell with
                                  Row = offset
-                                 MergedRows = speakerHeight
                                  MergedColumns = speakerWidth }
-                             |> fit (speakerWidthPx, speakerHeightPx)
+                             |> fit (speakerWidthPx, speakerHeightPx) speakerHeight
                              |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.date ->
         let dateHeight = int (float height * 0.06)
@@ -111,10 +127,8 @@ type ConvertionRule(width: int, height: int) =
         let dateHeightPx = dateHeight * heightUnit
         let dateWidthPx = dateWidth * widthUnit
         cells |> List.map (fun cell ->
-                             { cell with
-                                 MergedRows = dateHeight
-                                 MergedColumns = dateWidth }
-                             |> fit (dateWidthPx, dateHeightPx)
+                             { cell with MergedColumns = dateWidth }
+                             |> fit (dateWidthPx, dateHeightPx) dateHeight
                              |> updateTitlePageFont)
     | Sdm.Patterns.Contains Styles.title ->
         let vOffset = int (float height / 20.0)
@@ -125,9 +139,9 @@ type ConvertionRule(width: int, height: int) =
         let titleWidthPx = titleWidth * widthUnit
         cells |> List.map (fun cell ->
                              { cell with
-                                 Row = vOffset; MergedRows = titleHeight
+                                 Row = vOffset
                                  Column = hOffset; MergedColumns = titleWidth }
-                             |> fit (titleWidthPx, titleHeightPx)
+                             |> fit (titleWidthPx, titleHeightPx) titleHeight
                              |> updateHeadingFont)
     | Sdm.Patterns.Contains Styles.sectionName ->
         let hOffset = int (float width / 25.0)
@@ -137,9 +151,9 @@ type ConvertionRule(width: int, height: int) =
         let titleWidthPx = titleWidth * widthUnit
         cells |> List.map (fun cell ->
                              { cell with
-                                 Row = height / 2 - (titleHeight / 2); MergedRows = titleHeight
+                                 Row = height / 2 - (titleHeight / 2)
                                  Column = hOffset; MergedColumns = titleWidth }
-                             |> fit (titleWidthPx, titleHeightPx)
+                             |> fit (titleWidthPx, titleHeightPx) titleHeight
                              |> updateHeadingFont)
     | _ -> cells
   override __.ArroundParagraph(start, groups, cells) =
@@ -170,18 +184,15 @@ type ConvertionRule(width: int, height: int) =
     let hPx = h * heightUnit
     let wPx = w * widthUnit
     cells |> List.mapi (fun i cell ->
-                          let cell = fit (wPx, hPx) cell
+                          let cell = fit (wPx, hPx) h cell
                           { cell with
-                              Row = cell.Row + (if i <> 0 then h - 1 else 0); MergedRows = h
+                              Row = cell.Row + (if i <> 0 then h - 1 else 0)
                               Data = if i <> 0 then cell.Data |> RichText.edit (fun txt -> { txt with FontInfo = txt.FontInfo |> Font.updateSize (size txt.FontInfo * 0.9) })
                                      else cell.Data |> RichText.editSegments (fun segs -> { Value = "・"; FontInfo = NoFontInfo }::segs) })
   override __.ArroundList(start, groups, cells) =
     let hOffset = int (float width / 25.0)
-    let h = int (float height * 0.1)
     let w = int (float width * 0.9)
-    cells |> List.map (fun cell ->
-                         { cell with
-                             Column = hOffset + cell.Column; MergedColumns = (w - cell.Column) })
+    cells |> List.map (fun cell -> { cell with Column = hOffset + cell.Column; MergedColumns = (w - cell.Column) })
   override __.Drawing(groups) =
     match groups |> Seq.map (fun g -> g :> Sdm.StyleGroup) with
     | Sdm.Patterns.ContainsPrefix "Image" path ->
