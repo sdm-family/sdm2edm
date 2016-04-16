@@ -30,7 +30,8 @@ module CodeColorizer =
     let mutable prevLine = 1
     [ for tok, lineNo in toks do
         if prevLine <> lineNo then
-          yield ("\n", FSharpTokenColorKind.Default)
+          let nlCount = lineNo - prevLine
+          yield (String.replicate nlCount "\n", FSharpTokenColorKind.Default)
           prevLine <- lineNo
         let line = lines.[lineNo - 1]
         let str = line.Substring(tok.LeftColumn, tok.RightColumn - tok.LeftColumn + 1)
