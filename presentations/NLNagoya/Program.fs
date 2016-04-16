@@ -91,7 +91,7 @@ let pages =
     yield ListPage { Heading = "登場人物"
                      Items = [ TextListItem "Sdm : 構造化された文書のモデル。抽象度高い"
                                Nested ("Edm : Excel文書のモデル。セルと一対一対応",
-                                       [ TextListItem "Edm.Writer.EPPlus : EdmをEPPlusを使ってExcelファイルに出力。hogehogehogehoge" ])
+                                       [ TextListItem "Edm.Writer.EPPlus : EdmをEPPlusを使ってExcelファイルに出力。" ])
                                TextListItem "Sdm2Edm : SdmをEdmに変換する仕組みを提供。" ] }
     yield ListPage { Heading = "EPPlus直接使うんじゃダメ？"
                      Items = [ Nested ("抽象度を分ける",
@@ -162,7 +162,10 @@ type IConvertionRule =
                                Nested ("提出形式としてのExcel方眼紙",
                                        [ TextListItem "万が一提出形式が変わっても何とかなる(多分)" ]) ] }
     yield ListPage { Heading = "Markdownから仕様書作成"
-                     Items = [ TextListItem "(未完)" ] }
+                     Items = [ TextListItem "(未完)"
+                               TextListItem "あまりやる気はない"
+                               TextListItem "え、本当にMarkdownで仕様書書きたいですか？"
+                               TextListItem "もっと特化したものから変換したほうがいい" ] }
 
     yield SectionPage { SectionName = "まとめ" }
     yield ListPage { Heading = "まとめ"

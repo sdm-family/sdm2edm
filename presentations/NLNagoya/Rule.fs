@@ -173,7 +173,7 @@ type ConvertionRule(width: int, height: int) =
         |> List.map CodeColorizer.color
         |> List.map (fun cell ->
                        let rows = height - cell.Row
-                       let size = float rows / 2.0
+                       let size = float rows / 1.8
                        { cell with MergedRows = rows; MergedColumns = (w - cell.Column) }
                        |> Cell.updateFontSize size
                        |> Cell.updateVerticalLayout (VLSup WrapText))
